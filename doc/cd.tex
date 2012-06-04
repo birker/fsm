@@ -1,0 +1,28 @@
+\titlehead{%
+ {\setlength{\unitlength}{1mm}
+  \begin{picture}(00,00)(+14,+05)
+    \put(000,000){\includegraphics[scale=0.80]{tu}}
+    \put(150,000){\includegraphics[scale=0.20]{ipslogo}}
+  \end{picture}}
+}
+
+\begin{titlepage}
+\pdfbookmark[0]{Titel}{titelblatt}
+\makeatletter
+\@titlehead
+
+\sffamily
+\begin{center}
+\vskip10mm{\bfseries\makebox[\textwidth]{TECHNISCHE UNIVERSIT\"AT CAROLO-WILHELMINA ZU BRAUNSCHWEIG}}\par
+\vskip15mm{\Large\@subject}\par
+\vskip15mm{\titlefont\huge\@title\par}
+\vskip15mm{\LARGE\@author}\par
+\vskip10mm{\Large\@date}\par
+\vskip33mm\@institut\par\@dozent\par
+\vskip08mm\@betreuer
+\end{center}
+\makeatother
+
+\end{titlepage}
+
+\endinput

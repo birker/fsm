@@ -1,0 +1,24 @@
+#! /usr/bin/csh -f
+
+  rm *.aux *.log *.dvi *.ps *.eps *.pdf
+
+  latex bild.tex
+  dvips bild.dvi
+  ps2eps bild.ps
+  epstopdf bild.eps
+  xpdf bild.pdf
+# acroread bild.pdf
+  ghostview bild.eps
+
+  pdflatex beispiel.tex
+  xpdf beispiel.pdf
+# acroread beispiel.pdf
+
+  latex beispiel.tex
+  xdvi beispiel.dvi
+  dvips beispiel.dvi
+  gv beispiel.ps
+
+# exit
+
+  rm *.aux *.log *.dvi *.ps *.eps *.pdf
