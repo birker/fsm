@@ -61,12 +61,13 @@ public class Fsm implements Serializable{
         if (choice == e) choice = null;
         active.remove(e);
         transitions.remove(e);
+        e.getLabel().getParent().remove(e.getLabel());
     }
     
     public void removeState(Node n) {
         if (choice == n) choice = null;
         active.remove(n);
-        for (Edge e: transitions) {
+        for (Edge e: (ArrayList<Edge>) transitions.clone()) {
             if (e.getFrom() == n || e.getTo() == n) removeTransition(e);
         }
         states.remove(n);

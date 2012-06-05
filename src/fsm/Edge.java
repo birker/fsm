@@ -12,6 +12,7 @@ import java.awt.geom.RectangularShape;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.ListIterator;
 import javax.swing.JLabel;
 
 /**
@@ -39,11 +40,11 @@ public class Edge implements Serializable, Element {
     //graphical properties
     private int degIn = AUTOMATIC;
     private int degOut = AUTOMATIC;
-    private int pathMode = QUADRATIC_BEZIER;
     private ArrayList<Point> supportPoints = new ArrayList<Point>();
-    private boolean inherit = true;
-    private Color color;
     private Path2D path;
+    private boolean inherit = true;
+    private int pathMode = QUADRATIC_BEZIER;
+    private Color color;
     
     //index, for constructing automaton piece by pieve.
     private int index;
@@ -216,11 +217,26 @@ public class Edge implements Serializable, Element {
     public void setIndex(int index) {
         this.index = index;
     }
+
+    public int getPathMode() {
+        return pathMode;
+    }
+
+    public void setPathMode(int pathMode) {
+        if (pathMode<0 || pathMode>2) throw new IllegalArgumentException("pathMode must be 0, 1 ot 2");
+        this.pathMode = pathMode;
+    }
+    
+    public boolean hit(Point2D p, int distance) {
+        
+        
+        
+        return path.intersects(p.getX()-distance, p.getY()-distance, 2*distance, 2*distance);
+    }
     
     static private Point2D getIntersectionPoint(Point2D p, RectangularShape s) {
         Point2D line = new Point2D.Double(p.getX()-s.getCenterX(),p.getY()-s.getCenterY());
         //normalize line (so length is 1 and we can walk pixel by pixel)
-//        double length = line.distance(0, 0);
         double length = Math.abs(Math.abs(line.getX())>Math.abs(line.getY())?line.getX():line.getY());
         line.setLocation(line.getX()/length, line.getY()/length);
         //get starting point
@@ -234,12 +250,12 @@ public class Edge implements Serializable, Element {
         while (s.contains(q)) {
             q.setLocation(q.getX() + line.getX(), q.getY() + line.getY());
         }
-        q.setLocation(q.getX() + line.getX(), q.getY() + line.getY());
         return q;
     }
     
     public void rebuildPath() {
-        Iterator<Point> itr = supportPoints.iterator();
+        //Iterator<Point> itr = supportPoints.iterator();
+        ListIterator<Point> itr = supportPoints.listIterator();
         Point2D element;
         //starting point
         if (degOut != AUTOMATIC) element = new Point2D.Double(from.getShape().getCenterX()+Math.cos(degOut*Math.PI/180),from.getShape().getCenterY()+Math.sin(degOut*Math.PI/180));
@@ -254,40 +270,70 @@ public class Edge implements Serializable, Element {
         
         path = new Path2D.Float();
         path.moveTo(start.getX(), start.getY());
-        if (pathMode==LINE) {
-            while (itr.hasNext()) {
+        if (!supportPoints.isEmpty()) {
+            if (pathMode==LINE) {
+                while (itr.hasNext()) {
+                    element = itr.next();
+                    path.lineTo(element.getX(), element.getY());    
+                }
+            } else if (pathMode == QUADRATIC_BEZIER || pathMode == CUBIC_BEZIER) {
                 element = itr.next();
-                path.lineTo(element.getX(), element.getY());    
-            }
-            
-        } else if (pathMode == QUADRATIC_BEZIER || pathMode == CUBIC_BEZIER) {
-            if (itr.hasNext()) {
-                element = itr.next();
-            Point2D h = new Point2D.Double((path.getCurrentPoint().getX()+element.getX())/2,(path.getCurrentPoint().getY()+element.getY())/2);
-            path.lineTo(h.getX(), h.getY());
-            while (itr.hasNext()) {
-                Point2D b = itr.next();
-                h.setLocation((b.getX()+element.getX())/2,(b.getY()+element.getY())/2);
+                Point2D h = new Point2D.Double((path.getCurrentPoint().getX()+element.getX())/2,(path.getCurrentPoint().getY()+element.getY())/2);
+                path.lineTo(h.getX(), h.getY());
+                while (itr.hasNext()) {
+                    Point2D b = itr.next();
+                    h.setLocation((b.getX()+element.getX())/2,(b.getY()+element.getY())/2);
+                    if (pathMode == QUADRATIC_BEZIER) path.quadTo(element.getX(), element.getY(), h.getX(), h.getY());
+                    else path.curveTo(element.getX(), element.getY(), element.getX(), element.getY(), h.getX(), h.getY());
+                    element = b;
+                }
+                h.setLocation((finish.getX()+element.getX())/2,(finish.getY()+element.getY())/2);
                 if (pathMode == QUADRATIC_BEZIER) path.quadTo(element.getX(), element.getY(), h.getX(), h.getY());
                 else path.curveTo(element.getX(), element.getY(), element.getX(), element.getY(), h.getX(), h.getY());
-                element = b;
-            }
-            h.setLocation((finish.getX()+element.getX())/2,(finish.getY()+element.getY())/2);
-            if (pathMode == QUADRATIC_BEZIER) path.quadTo(element.getX(), element.getY(), h.getX(), h.getY());
-            else path.curveTo(element.getX(), element.getY(), element.getX(), element.getY(), h.getX(), h.getY());
-            element = h;
             }
         }
         path.lineTo(finish.getX(), finish.getY());
+        
         //arrow
         Point2D t = new Point2D.Double(finish.getX()-element.getX(),finish.getY()-element.getY());
         double n = Math.tan(25*Math.PI/180);
         double m = Math.sqrt(1+n*n)*t.distance(0, 0)/10;
         path.lineTo(finish.getX()-((finish.getX()-element.getX())-n*(finish.getY()-element.getY()))/m,
                 finish.getY()-((finish.getY()-element.getY())+n*(finish.getX()-element.getX()))/m);
-        path.moveTo(finish.getX(),finish.getY());
         path.lineTo(finish.getX()-((finish.getX()-element.getX())+n*(finish.getY()-element.getY()))/m,
                 finish.getY()-((finish.getY()-element.getY())-n*(finish.getX()-element.getX()))/m);
+        path.lineTo(finish.getX(), finish.getY());
+        
+        /* There seems to be no elegant way to determine if a Point lies 
+         * within a specific distance of a line but to close the whole path 
+         * and then intersect. This has to be done manually all the way back, 
+         * because he would just lineTo the starting point, if done automatically.*/
+        //Path2D path2 = (Path2D) path.clone();
+        //ListIterator<Point> itr = supportPoints.listIterator(supportPoints.size()-1);
+        if (!supportPoints.isEmpty()) {
+            if (pathMode==LINE) {
+                while (itr.hasPrevious()) {
+                    element = itr.previous();
+                    path.lineTo(element.getX(), element.getY());    
+                }
+            } else if (pathMode == QUADRATIC_BEZIER || pathMode == CUBIC_BEZIER) {
+                element = itr.previous();
+                Point2D h = new Point2D.Double((path.getCurrentPoint().getX()+element.getX())/2,(path.getCurrentPoint().getY()+element.getY())/2);
+                path.lineTo(h.getX(), h.getY());
+                while (itr.hasPrevious()) {
+                    Point2D b = itr.previous();
+                    h.setLocation((b.getX()+element.getX())/2,(b.getY()+element.getY())/2);
+                    if (pathMode == QUADRATIC_BEZIER) path.quadTo(element.getX(), element.getY(), h.getX(), h.getY());
+                    else path.curveTo(element.getX(), element.getY(), element.getX(), element.getY(), h.getX(), h.getY());
+                    element = b;
+                }
+                h.setLocation((start.getX()+element.getX())/2,(start.getY()+element.getY())/2);
+                if (pathMode == QUADRATIC_BEZIER) path.quadTo(element.getX(), element.getY(), h.getX(), h.getY());
+                else path.curveTo(element.getX(), element.getY(), element.getX(), element.getY(), h.getX(), h.getY());
+            }
+        }
+        path.closePath();
+        
         repositionLabel();
     }
     
@@ -296,11 +342,14 @@ public class Edge implements Serializable, Element {
                 (supportPoints.isEmpty()?to.getShape().getCenterX():supportPoints.get(0).x) - from.getShape().getCenterX(),
                 (supportPoints.isEmpty()?to.getShape().getCenterY():supportPoints.get(0).y) - from.getShape().getCenterY()); 
         Point2D p = new Point2D.Double(from.getShape().getCenterX() + line.getX()/2, from.getShape().getCenterY() + line.getY()/2);
-        label.setLocation((int)p.getX(), (int)p.getY());
+        label.setLocation((int)p.getX()+1, (int)p.getY()+1);
+        if (path.intersects(label.getBounds()))
+            label.setLocation((int)p.getX(), (int)p.getY()-label.getHeight()-1);
+        
     }
     
     @Override
     public String toString() {
-        return "Edge: " + label/*.getText()*/ + "@"+from+","+to;
+        return "Edge: " + label.getText() + "@"+from+","+to;
     }
 }

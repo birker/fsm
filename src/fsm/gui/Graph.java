@@ -21,6 +21,7 @@ import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -62,15 +63,19 @@ public class Graph extends JPanel {
         while (itr2.hasNext()) {
             Edge element = itr2.next();
             add(element.getLabel());
-            if (fsm.getChoice() instanceof Edge && fsm.getChoice() == element) {
+            //g2d.setColor(Color.yellow);
+            //g2d.fill(element.getPath());
+            if (fsm.getChoice() == element) {
                 g2d.setColor(Color.red);
+                element.getLabel().setForeground(Color.red);
             } else if (element.isInherit()) {
                 g2d.setColor(fsm.getEdgeColor());
+                element.getLabel().setForeground(fsm.getEdgeColor());
             } else {
                 g2d.setColor(element.getColor());
+                element.getLabel().setForeground(element.getColor());
             }
             g2d.draw(element.getPath());
-            //Beschriftung malen
         }
         Iterator<Node> itr = fsm.getStates().iterator();
         while (itr.hasNext()) {
@@ -87,6 +92,7 @@ public class Graph extends JPanel {
                 g2d.setColor(element.getColor());
             }
             g2d.draw(element.getShape());
+            
             if (element.isFinal()) {
                 element.getShape().setFrame(element.getShape().getX() + 2, element.getShape().getY() + 2, element.getShape().getWidth() - 4, element.getShape().getHeight() - 4);
                 g2d.draw(element.getShape());
@@ -125,23 +131,26 @@ public class Graph extends JPanel {
         f.setLocation(200, 200);
         f.setLayout(null);
         Fsm a = new Fsm();
-        a.addState(new Point(100, 100));
-        a.addState(new Point(5, 5));
-        a.getStates().get(0).setFinal(true);
-        a.getStates().get(0).setInitial(true);
-        a.getStates().get(0).setLabel("q0");
+        Node n = a.addState(new Point(200, 100));
+        n.setFinal(true);
+        n.setInitial(true);
+        n.setLabel("q0");
+        n = a.addState(new Point(5, 100));
 
-        a.addTransition(a.getStates().get(0), a.getStates().get(1));
-        a.getTransitions().get(0).addSupportPoint(new Point(220, 120));
-        a.getTransitions().get(0).addSupportPoint(new Point(220, 25));
+        Edge e = a.addTransition(a.getStates().get(0), a.getStates().get(1));
+        e.addSupportPoint(new Point(125,90));
+        //a.getTransitions().get(0).addSupportPoint(new Point(220, 120));
+        //a.getTransitions().get(0).addSupportPoint(new Point(220, 25));
         //a.getTransitions().get(0).addSupportPoint(new Point(120,25));
         //a.getTransitions().get(0).setDegOut(Edge.WEST);
         //a.getTransitions().get(0).setDegIn(45);
 
-        a.addTransition(a.getStates().get(0), a.getStates().get(0));
-        a.getTransitions().get(1).addSupportPoint(new Point(120, 180));
-        a.getTransitions().get(1).setDegOut(Edge.SOUTH - 10);
-        a.getTransitions().get(1).setDegIn(Edge.SOUTH + 10);
+        e = a.addTransition(a.getStates().get(0), a.getStates().get(0));
+        e.addSupportPoint(new Point(210,160));
+        e.addSupportPoint(new Point(230,160));
+//        a.getTransitions().get(1).addSupportPoint(new Point(120, 180));
+//        a.getTransitions().get(1).setDegOut(Edge.SOUTH - 10);
+//        a.getTransitions().get(1).setDegIn(Edge.SOUTH + 10);
         Graph g = new Graph(a);
         g.setBounds(0, 0, 400, 400);
         g.setFocusable(true);
@@ -169,9 +178,6 @@ public class Graph extends JPanel {
             public void mousePressed(java.awt.event.MouseEvent evt) {
                 formMousePressed(evt);
             }
-            public void mouseReleased(java.awt.event.MouseEvent evt) {
-                formMouseReleased(evt);
-            }
         });
         addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
             public void mouseDragged(java.awt.event.MouseEvent evt) {
@@ -181,9 +187,6 @@ public class Graph extends JPanel {
         addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 formKeyPressed(evt);
-            }
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                formKeyTyped(evt);
             }
         });
 
@@ -245,6 +248,14 @@ public class Graph extends JPanel {
                     }
                 }
                 repaint();
+            } else if (mouseElement instanceof Edge) {
+                fsm.setChoice(mouseElement);
+                Edge element = (Edge) mouseElement;
+                if (element.getLabel().getBounds().contains(mouseStart)) {
+                    element.getLabel().setLocation((int)(element.getLabel().getX() + evt.getX() - mouseStart.getX()), (int)(element.getLabel().getY() + evt.getY() - mouseStart.getY()));
+                    mouseStart = evt.getPoint();
+                }
+                repaint();
             }
         }
     }//GEN-LAST:event_formMouseDragged
@@ -262,18 +273,11 @@ public class Graph extends JPanel {
         itr = fsm.getTransitions().iterator();
         while (itr.hasNext() && mouseElement == null) {
             Edge e = (Edge) itr.next();
-            if (e.getPath().contains(evt.getPoint())) {
+            if (e.hit(evt.getPoint(), 4) || e.getLabel().getBounds().contains(evt.getPoint())) {
                 mouseElement = e;
             }
-            //if (e.getPath().intersects(evt.getPoint().x-1, evt.getPoint().y-1, 2, 2)) element = e; 
         }
     }//GEN-LAST:event_formMousePressed
-
-    private void formMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseReleased
-    }//GEN-LAST:event_formMouseReleased
-
-    private void formKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_formKeyTyped
-    }//GEN-LAST:event_formKeyTyped
 
     private void formKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_formKeyPressed
         if (fsm.getChoice() instanceof Node) {
@@ -284,10 +288,9 @@ public class Graph extends JPanel {
                 if (n.getLabel().length() > 0) {
                     n.setLabel(n.getLabel().substring(0, n.getLabel().length() - 1));
                 }
-            } else {
+            } else if (evt.getKeyChar() != KeyEvent.CHAR_UNDEFINED && evt.getKeyChar() >= KeyEvent.VK_SPACE) {
                 n.setLabel(n.getLabel() + evt.getKeyChar());
             }
-            repaint();
         } else if (fsm.getChoice() instanceof Edge) {
             Edge e = (Edge) fsm.getChoice();
             if (evt.getKeyCode() == KeyEvent.VK_DELETE) {
@@ -295,12 +298,13 @@ public class Graph extends JPanel {
             } else if (evt.getKeyChar() != KeyEvent.CHAR_UNDEFINED && evt.getKeyChar() >= KeyEvent.VK_SPACE){
                 if (e.containsTransition("" + evt.getKeyChar())) {
                     e.removeTransition("" + evt.getKeyChar());
-                    repaint();
                 } else {
                     e.addTransition("" + evt.getKeyChar());
                 }
             }
+            e.repositionLabel();
         }
+        repaint();
     }//GEN-LAST:event_formKeyPressed
 
     private void jTextField1KeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField1KeyPressed
