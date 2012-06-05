@@ -21,10 +21,14 @@ import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RectangularShape;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -40,6 +44,7 @@ public class Graph extends JPanel {
 
     private Fsm fsm;
     private static final JLabel text;
+    private ArrayList<RectangularShape> sp = new ArrayList<RectangularShape>();
 
     static {
         text = new JLabel();
@@ -115,6 +120,14 @@ public class Graph extends JPanel {
             text.paint(g);
             g2d.translate(-element.getShape().getX(), -element.getShape().getY());
         }
+        if (fsm.getChoice() instanceof Edge) {
+            //draw Support Points
+            g2d.setColor(Color.blue);
+            Iterator<RectangularShape> it = sp.iterator();
+            while (it.hasNext()) {
+                g2d.fill(it.next());
+            }
+        }
 
     }
 
@@ -158,6 +171,17 @@ public class Graph extends JPanel {
         f.setVisible(true);
 
 
+    }
+    
+    private void setSP() {
+        if (fsm.getChoice() instanceof Edge) {
+            sp.clear();
+            Iterator<Point> it = ((Edge)fsm.getChoice()).getSupportPointIterator();
+            while (it.hasNext()) {
+                Point p = it.next();
+                sp.add(new Rectangle2D.Double(p.x-2, p.y-2, 4, 4));
+            }
+        }
     }
 
     /** This method is called from within the constructor to
@@ -228,9 +252,23 @@ public class Graph extends JPanel {
                     n.setInitial(false);
                 }
 
+            } else if (mouseElement instanceof Edge) {
+                int nr = 0;
+                Iterator<RectangularShape> itr = sp.iterator();
+                    while (itr.hasNext()) {
+                        if (itr.next().contains(mouseStart)) {
+                            ((Edge) mouseElement).removeSupportPoint(nr);
+                            ((Edge) mouseElement).rebuildPath();
+                            break;
+                        }
+                        nr++;
+                    }
             }
+            
         }
+        setSP();
         repaint();
+        
     }//GEN-LAST:event_formMouseClicked
 
     private void formMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseDragged
@@ -247,23 +285,69 @@ public class Graph extends JPanel {
                         e.rebuildPath();
                     }
                 }
-                repaint();
             } else if (mouseElement instanceof Edge) {
                 fsm.setChoice(mouseElement);
                 Edge element = (Edge) mouseElement;
                 if (element.getLabel().getBounds().contains(mouseStart)) {
                     element.getLabel().setLocation((int)(element.getLabel().getX() + evt.getX() - mouseStart.getX()), (int)(element.getLabel().getY() + evt.getY() - mouseStart.getY()));
                     mouseStart = evt.getPoint();
+                } else {
+                    //move supportpoint
+                    boolean found = false;
+                    int nr = 0;
+                    Iterator<RectangularShape> itr = sp.iterator();
+                    while (itr.hasNext() && !found) {
+                        if (itr.next().contains(mouseStart)) {
+                            found = true;
+                            element.getSupportPoint(nr).translate((int)(evt.getX() - mouseStart.getX()), (int)(evt.getY() - mouseStart.getY()));
+                            element.rebuildPath();
+                        }
+                        nr++;
+                    }
+                    if (!found) {
+                        //add new support point
+                        Iterator it = element.getSupportPointIterator();
+                        nr = 0;
+                        int nrsmallest = 0;
+                        double distancesmallest = Double.MAX_VALUE;
+                        Point2D p = new Point2D.Double(element.getFrom().getShape().getCenterX(),element.getFrom().getShape().getCenterY());
+                        while (it.hasNext()) {
+                            Point2D p2 = (Point2D) it.next();
+                            double distance = Line2D.ptSegDist(p.getX(), p.getY(), p2.getX(), p2.getY(), evt.getX(), evt.getY());
+                            if (distance < distancesmallest) {
+                                distancesmallest = distance;
+                                nrsmallest = nr;
+                            }
+                            p = p2;
+                            nr++;
+                        }
+                        Point2D p2 = new Point2D.Double(element.getTo().getShape().getCenterX(),element.getTo().getShape().getCenterY());
+                        double distance = Line2D.ptSegDist(p.getX(), p.getY(), p2.getX(), p2.getY(), evt.getX(), evt.getY());
+                        if (distance < distancesmallest) {
+                            distancesmallest = distance;
+                            nrsmallest = nr;
+                        }
+                        element.addSupportPoint(nrsmallest, mouseStart);
+                    }
+                    mouseStart = evt.getPoint();
                 }
-                repaint();
             }
+            repaint();
+            setSP();
         }
     }//GEN-LAST:event_formMouseDragged
 
     private void formMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMousePressed
         mouseStart = evt.getPoint();
         mouseElement = null;
-        Iterator itr = fsm.getStates().iterator();
+        Iterator itr;
+        if (fsm.getChoice() instanceof Edge) {
+            itr = sp.iterator();
+            while (itr.hasNext() && mouseElement == null) {
+                if (((RectangularShape)itr.next()).contains(mouseStart)) mouseElement = fsm.getChoice();
+            }
+        }
+        itr = fsm.getStates().iterator();
         while (itr.hasNext() && mouseElement == null) {
             Node n = (Node) itr.next();
             if (n.getShape().contains(evt.getPoint())) {
@@ -274,6 +358,9 @@ public class Graph extends JPanel {
         while (itr.hasNext() && mouseElement == null) {
             Edge e = (Edge) itr.next();
             if (e.hit(evt.getPoint(), 4) || e.getLabel().getBounds().contains(evt.getPoint())) {
+                //if (e.getLabel().getBounds().contains(evt.getPoint())) System.out.println("Label");
+                
+                //System.out.println("Segment "+nrsmallest);  
                 mouseElement = e;
             }
         }
