@@ -74,9 +74,6 @@ public class Graph extends JPanel {
             if (fsm.getChoice() == element) {
                 g2d.setColor(Color.red);
                 element.getLabel().setForeground(Color.red);
-            } else if (element.isInherit()) {
-                g2d.setColor(fsm.getEdgeColor());
-                element.getLabel().setForeground(fsm.getEdgeColor());
             } else {
                 g2d.setColor(element.getColor());
                 element.getLabel().setForeground(element.getColor());
@@ -94,8 +91,6 @@ public class Graph extends JPanel {
             //border
             if (fsm.getChoice() instanceof Node && fsm.getChoice() == element) {
                 g2d.setColor(Color.red);
-            } else if (element.isInherit()) {
-                g2d.setColor(fsm.getNodeColor());
             } else {
                 g2d.setColor(element.getColor());
             }

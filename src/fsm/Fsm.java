@@ -5,10 +5,7 @@
  */
 package fsm;
 
-import java.awt.Color;
 import java.awt.Point;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.RectangularShape;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,28 +31,18 @@ public class Fsm implements Serializable{
     private int blocksize = 1;
     //private ? simNonDeterminism
     
-    //graphical standards
-    private Color nodeColor = Color.BLACK;
-    private boolean fillNode = false;
-    private Color nodeFillColor = Color.WHITE;
-    private int pathMode = Edge.QUADRATIC_BEZIER;
-    private Color edgeColor = Color.BLACK;
-    private boolean autoWidth = false;
-    private RectangularShape nodeShape = new Ellipse2D.Double(0, 0, 40, 40);
-    //private ? edgeShape rund, eckig, abgerundet
-    
     //Simulation etc.
     private Element choice;
     private ArrayList<Element> active = new ArrayList<Element>();
 
     public Node addState(Point position) {
-        Node n = new Node(nodeShape, position);
+        Node n = new Node(Node.getDefShape(), position);
         states.add(n);
         return n;
     }
     
     public Edge addTransition(Node from, Node to) {
-        Edge e = new Edge(from, to, pathMode);
+        Edge e = new Edge(from, to);
         transitions.add(e);
         return e;
     }
@@ -125,39 +112,6 @@ public class Fsm implements Serializable{
     public void setChoice(Element choice) {
         this.choice = choice;
     }
-
-    public Color getEdgeColor() {
-        return edgeColor;
-    }
-
-    public void setEdgeColor(Color edgeColor) {
-        this.edgeColor = edgeColor;
-    }
-
-    public boolean isFillNode() {
-        return fillNode;
-    }
-
-    public void setFillNode(boolean fillNode) {
-        this.fillNode = fillNode;
-    }
-
-    public int getPathMode() {
-        return pathMode;
-    }
-
-    public void setPathMode(int pathMode) {
-        if (pathMode<0 || pathMode>2) throw new IllegalArgumentException("pathMode must be 0, 1 ot 2");
-        this.pathMode = pathMode;
-    }
-
-    public Color getNodeFillColor() {
-        return nodeFillColor;
-    }
-
-    public void setNodeFillColor(Color nodeFillColor) {
-        this.nodeFillColor = nodeFillColor;
-    }
     
     public char getEpsSymbol() {
         return epsSymbol;
@@ -167,29 +121,8 @@ public class Fsm implements Serializable{
         this.epsSymbol = epsSymbol;
     }
 
-    public Color getNodeColor() {
-        return nodeColor;
-    }
-
-    public void setNodeColor(Color nodeColor) {
-        this.nodeColor = nodeColor;
-    }
-
-    public RectangularShape getNodeShape() {
-        return nodeShape;
-    }
-
-    public void setNodeShape(RectangularShape nodeShape) {
-        this.nodeShape = nodeShape;
-        //TODO alle Knoten mit inherit brauchen ein neues Shape!
-    }
-
     public HashMap<Character, String> getShortSymbols() {
         return shortSymbols;
-    }
-
-    public void setShortSymbols(HashMap<Character, String> shortSymbols) {
-        this.shortSymbols = shortSymbols;
     }
     
     public boolean accept(String input) {

@@ -20,6 +20,8 @@ import javax.swing.JLabel;
  * @author Konnarr
  */
 public class Edge implements Serializable, Element {
+    private static final long serialVersionUID = 2345541351034924475L;    
+
     public static final int LINE = 0;
     public static final int QUADRATIC_BEZIER = 1;
     public static final int CUBIC_BEZIER =2;
@@ -29,9 +31,9 @@ public class Edge implements Serializable, Element {
     public static final int SOUTH = 90;
     public static final int EAST = 180;
     
+    private static int defPathMode = QUADRATIC_BEZIER;
+    private static Color defColor = Color.BLACK;
     
-    private static final long serialVersionUID = 2345541351034924475L;    
-
     private Node from;
     private Node to;
     private ArrayList<String> trans = new ArrayList<String>();
@@ -49,17 +51,33 @@ public class Edge implements Serializable, Element {
     //index, for constructing automaton piece by pieve.
     private int index;
     
-    public Edge(Node from, Node to, int pathMode) {
+    public Edge(Node from, Node to) {
         this.from = from;
         from.getEdges().add(this);
         this.to = to;
-        this.pathMode = pathMode;
         //TODO automatische SupportPoints
         
         rebuildPath();
         label.setText("");
         label.setSize(label.getPreferredSize());
         label.setVisible(true);
+    }
+
+    public static Color getDefColor() {
+        return defColor;
+    }
+
+    public static void setDefColor(Color defColor) {
+        Edge.defColor = defColor;
+    }
+
+    public static int getDefPathMode() {
+        return defPathMode;
+    }
+
+    public static void setDefPathMode(int defPathMode) {
+        if (defPathMode<0 || defPathMode > 2) throw new IllegalArgumentException("pathMode must be of 0, 1 or 2");
+        Edge.defPathMode = defPathMode;
     }
     
     //sollte readonly sein. nur zum malen;
