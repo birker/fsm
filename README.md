@@ -8,7 +8,7 @@ Juni bis Oktober 2012
 
 "Konstruktion und Simulation endlicher Automaten mit besonderer Berücksichtigung universeller Abstandsautomaten"
 
-Bedienung
+
 ---------
 
 Compilieren und Ausführen mit "ant run".
