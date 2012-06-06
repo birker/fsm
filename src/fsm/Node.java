@@ -6,7 +6,6 @@ package fsm;
 
 import java.awt.Color;
 import java.awt.Point;
-import java.awt.Shape;
 import java.awt.geom.RectangularShape;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -27,6 +26,8 @@ public class Node implements Serializable, Element{
     //graphical properties    
     private boolean inherit = true;
     private Color color;
+    private Color fillColor = Color.WHITE;
+    private boolean fillNode = false;
     private RectangularShape shape;
         
     private int index;
@@ -42,6 +43,7 @@ public class Node implements Serializable, Element{
     
     public void setShape(RectangularShape shape) {
         this.shape = shape;
+        inherit = false;
     }
     
     public boolean isFinal() {
@@ -77,6 +79,24 @@ public class Node implements Serializable, Element{
         inherit = false;
     }
 
+    public Color getFillColor() {
+        return fillColor;
+    }
+
+    public void setFillColor(Color fillColor) {
+        this.fillColor = fillColor;
+        inherit = false;
+    }
+
+    public boolean isFillNode() {
+        return fillNode;
+    }
+
+    public void setFillNode(boolean fillNode) {
+        this.fillNode = fillNode;
+        inherit = false;
+    }
+    
     public ArrayList<Edge> getEdges() {
         return edges;
     }
@@ -95,6 +115,7 @@ public class Node implements Serializable, Element{
     
     public void setInherit() {
         inherit = true;
+        //TODO hier müsste das shape auf das der fsm gesetzt werden. PROBLEM!
     }
 
     @Override

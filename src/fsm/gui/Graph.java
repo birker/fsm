@@ -21,6 +21,7 @@ import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -86,8 +87,10 @@ public class Graph extends JPanel {
         while (itr.hasNext()) {
             Node element = itr.next();
             //fill
-            //g2d.setColor(Color.white);
-            //g2d.fill(element.getShape());
+            if (element.isFillNode()) {
+              g2d.setColor(element.getFillColor());
+              g2d.fill(element.getShape());
+            }
             //border
             if (fsm.getChoice() instanceof Node && fsm.getChoice() == element) {
                 g2d.setColor(Color.red);
@@ -229,17 +232,22 @@ public class Graph extends JPanel {
 
     private void formMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseClicked
         if (evt.getButton() == MouseEvent.BUTTON1) {
+            //choose
             fsm.setChoice(mouseElement);
         } else if (evt.getButton() == MouseEvent.BUTTON3) {
-            if (mouseElement == null) { //New State
+            if (mouseElement == null) { 
+                //New State
                 fsm.setChoice(fsm.addState(evt.getPoint()));
-            } else if (mouseElement instanceof Node && fsm.getChoice() instanceof Node) { //new Edge
+            } else if (mouseElement instanceof Node && fsm.getChoice() instanceof Node) { 
+                //new Edge
                 fsm.setChoice(fsm.addTransition((Node) fsm.getChoice(), (Node) mouseElement));
-            } else if (mouseElement instanceof Node && fsm.getChoice() instanceof Edge) { //move Edge
+            } else if (mouseElement instanceof Node && fsm.getChoice() instanceof Edge) { 
+                //move Edge
                 ((Edge) fsm.getChoice()).setTo((Node) mouseElement);
             }
         } else if (evt.getButton() == MouseEvent.BUTTON2) {
             fsm.setChoice(mouseElement);
+            //change init/final-status of node
             if (mouseElement instanceof Node) {
                 Node n = (Node) mouseElement;
                 if (!n.isFinal() && !n.isInitial()) {
@@ -253,16 +261,24 @@ public class Graph extends JPanel {
                 }
 
             } else if (mouseElement instanceof Edge) {
+                Edge element = (Edge) mouseElement;
+                //search supportpoint and delete it if found.
                 int nr = 0;
+                boolean found = false;
                 Iterator<RectangularShape> itr = sp.iterator();
-                    while (itr.hasNext()) {
-                        if (itr.next().contains(mouseStart)) {
-                            ((Edge) mouseElement).removeSupportPoint(nr);
-                            ((Edge) mouseElement).rebuildPath();
-                            break;
-                        }
-                        nr++;
+                while (itr.hasNext() && !found) {
+                    if (itr.next().contains(mouseStart)) {
+                        found = true;
+                        element.removeSupportPoint(nr);
+                        element.rebuildPath();
                     }
+                    nr++;
+                }
+                //change pathmode
+                if (!found) {
+                    element.setPathMode((element.getPathMode()+1) %3);
+                    element.rebuildPath();
+                }
             }
             
         }
@@ -274,6 +290,7 @@ public class Graph extends JPanel {
     private void formMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseDragged
         if (evt.getModifiers() == MouseEvent.BUTTON1_MASK) {
             if (mouseElement instanceof Node) {
+                //move Node
                 fsm.setChoice(mouseElement);
                 Node element = (Node) mouseElement;
                 element.getShape().setFrame(element.getShape().getX() + evt.getX() - mouseStart.getX(), element.getShape().getY() + evt.getY() - mouseStart.getY(), element.getShape().getWidth(), element.getShape().getHeight());
@@ -288,6 +305,7 @@ public class Graph extends JPanel {
             } else if (mouseElement instanceof Edge) {
                 fsm.setChoice(mouseElement);
                 Edge element = (Edge) mouseElement;
+                //move Label
                 if (element.getLabel().getBounds().contains(mouseStart)) {
                     element.getLabel().setLocation((int)(element.getLabel().getX() + evt.getX() - mouseStart.getX()), (int)(element.getLabel().getY() + evt.getY() - mouseStart.getY()));
                     mouseStart = evt.getPoint();
@@ -327,13 +345,35 @@ public class Graph extends JPanel {
                             distancesmallest = distance;
                             nrsmallest = nr;
                         }
-                        element.addSupportPoint(nrsmallest, mouseStart);
+                        element.addSupportPoint(nrsmallest, evt.getPoint());
                     }
                     mouseStart = evt.getPoint();
                 }
             }
             repaint();
             setSP();
+        } else if (evt.getModifiers() == MouseEvent.BUTTON3_MASK) {
+            if (mouseElement == null) {
+                fsm.setChoice(mouseElement);
+                //move everything
+                Iterator itr = fsm.getStates().iterator();
+                while (itr.hasNext()) {
+                    Node element = (Node)itr.next();
+                    element.getShape().setFrame(element.getShape().getX()+evt.getX() - mouseStart.getX(), element.getShape().getY()+evt.getY() - mouseStart.getY(), element.getShape().getWidth(), element.getShape().getHeight());
+                }
+                itr = fsm.getTransitions().iterator();
+                while (itr.hasNext()) {
+                    Edge element = (Edge) itr.next();
+                    element.getPath().transform(AffineTransform.getTranslateInstance(evt.getX() - mouseStart.getX(), evt.getY() - mouseStart.getY()));
+                    element.getLabel().setLocation((int)(element.getLabel().getX()+evt.getX() - mouseStart.getX()), (int)(element.getLabel().getY()+evt.getY() - mouseStart.getY()));
+                    Iterator<Point> it = element.getSupportPointIterator();
+                    while (it.hasNext()) {
+                        it.next().translate((int)(evt.getX() - mouseStart.getX()), (int)(evt.getY() - mouseStart.getY()));
+                    }
+                }
+                mouseStart = evt.getPoint();
+                repaint();
+            }
         }
     }//GEN-LAST:event_formMouseDragged
 
@@ -358,9 +398,6 @@ public class Graph extends JPanel {
         while (itr.hasNext() && mouseElement == null) {
             Edge e = (Edge) itr.next();
             if (e.hit(evt.getPoint(), 4) || e.getLabel().getBounds().contains(evt.getPoint())) {
-                //if (e.getLabel().getBounds().contains(evt.getPoint())) System.out.println("Label");
-                
-                //System.out.println("Segment "+nrsmallest);  
                 mouseElement = e;
             }
         }

@@ -1,0 +1,28 @@
+Bedienung Graph
+Linksklick:
+ - Auswahl (Knoten, Kante, nichts)
+ 
+Links drag:
+ - Ziel Knoten: Knoten verschieben
+ - Ziel Kante->Label: Kantenlabel verschieben
+ - Ziel Kante->SupportPoint: Supportpoint verschieben
+ - Ziel Kante: neuen Supportpoint
+
+Rechtsklick:
+ - Auwahl nichts, Ziel nichts: neuer Knoten
+ - Auswahl Knoten, Ziel Knoten: neue Kante
+ - Auswahl Kante, Ziel Knoten: ändere Endpunkt
+ 
+Rechts drag
+ - Ziel nichts: alles verschieben
+
+Mittelklick:
+ - Ziel Kante->SupportPoint: SupportPoint löschen
+ - Ziel Kante: ändere pathMode (lineare, quadratische oder kubische Bezier-Kurve)
+ - Ziel Knoten: ändere Start-/Finalzustand (alle Kombinationen nacheinander)
+
+Tastatureingabe:
+ - Taste entf: Kante/Knoten löschen
+ - Ziel Kante: füge hinzu oder lösche Buchstaben als Möglichen Übergang
+ - Ziel Knoten: Knoten beschriften (Backspace zum Löschen)
+ 

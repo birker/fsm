@@ -49,10 +49,12 @@ public class Edge implements Serializable, Element {
     //index, for constructing automaton piece by pieve.
     private int index;
     
-    public Edge(Node from, Node to) {
+    public Edge(Node from, Node to, int pathMode) {
         this.from = from;
         from.getEdges().add(this);
         this.to = to;
+        this.pathMode = pathMode;
+        //TODO automatische SupportPoints
         
         rebuildPath();
         label.setText("");
@@ -208,6 +210,7 @@ public class Edge implements Serializable, Element {
 
     public void setColor(Color color) {
         this.color = color;
+        inherit = false;
     }
 
     public int getIndex() {
@@ -225,12 +228,10 @@ public class Edge implements Serializable, Element {
     public void setPathMode(int pathMode) {
         if (pathMode<0 || pathMode>2) throw new IllegalArgumentException("pathMode must be 0, 1 ot 2");
         this.pathMode = pathMode;
+        inherit = false;
     }
     
     public boolean hit(Point2D p, int distance) {
-        
-        
-        
         return path.intersects(p.getX()-distance, p.getY()-distance, 2*distance, 2*distance);
     }
     

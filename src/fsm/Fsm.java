@@ -36,7 +36,11 @@ public class Fsm implements Serializable{
     
     //graphical standards
     private Color nodeColor = Color.BLACK;
+    private boolean fillNode = false;
+    private Color nodeFillColor = Color.WHITE;
+    private int pathMode = Edge.QUADRATIC_BEZIER;
     private Color edgeColor = Color.BLACK;
+    private boolean autoWidth = false;
     private RectangularShape nodeShape = new Ellipse2D.Double(0, 0, 40, 40);
     //private ? edgeShape rund, eckig, abgerundet
     
@@ -51,7 +55,7 @@ public class Fsm implements Serializable{
     }
     
     public Edge addTransition(Node from, Node to) {
-        Edge e = new Edge(from, to);
+        Edge e = new Edge(from, to, pathMode);
         transitions.add(e);
         return e;
     }
@@ -130,6 +134,31 @@ public class Fsm implements Serializable{
         this.edgeColor = edgeColor;
     }
 
+    public boolean isFillNode() {
+        return fillNode;
+    }
+
+    public void setFillNode(boolean fillNode) {
+        this.fillNode = fillNode;
+    }
+
+    public int getPathMode() {
+        return pathMode;
+    }
+
+    public void setPathMode(int pathMode) {
+        if (pathMode<0 || pathMode>2) throw new IllegalArgumentException("pathMode must be 0, 1 ot 2");
+        this.pathMode = pathMode;
+    }
+
+    public Color getNodeFillColor() {
+        return nodeFillColor;
+    }
+
+    public void setNodeFillColor(Color nodeFillColor) {
+        this.nodeFillColor = nodeFillColor;
+    }
+    
     public char getEpsSymbol() {
         return epsSymbol;
     }
@@ -152,6 +181,7 @@ public class Fsm implements Serializable{
 
     public void setNodeShape(RectangularShape nodeShape) {
         this.nodeShape = nodeShape;
+        //TODO alle Knoten mit inherit brauchen ein neues Shape!
     }
 
     public HashMap<Character, String> getShortSymbols() {
