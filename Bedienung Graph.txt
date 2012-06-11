@@ -9,7 +9,7 @@ Links drag:
  - Ziel Kante: neuen Supportpoint
 
 Rechtsklick:
- - Auwahl nichts, Ziel nichts: neuer Knoten
+ - Auswahl nichts, Ziel nichts: neuer Knoten
  - Auswahl Knoten, Ziel Knoten: neue Kante
  - Auswahl Kante, Ziel Knoten: ändere Endpunkt
  

@@ -44,6 +44,7 @@ public class Fsm implements Serializable{
     public Edge addTransition(Node from, Node to) {
         Edge e = new Edge(from, to);
         transitions.add(e);
+        from.getEdges().add(e);
         return e;
     }
     

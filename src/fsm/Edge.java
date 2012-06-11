@@ -46,18 +46,23 @@ public class Edge implements Serializable, Element {
     private Path2D path;
     private boolean inherit = true;
     private int pathMode = QUADRATIC_BEZIER;
-    private Color color;
+    private Color color = defColor;
     
     //index, for constructing automaton piece by pieve.
     private int index;
     
     public Edge(Node from, Node to) {
         this.from = from;
-        from.getEdges().add(this);
         this.to = to;
         //TODO automatische SupportPoints
+//        java.awt.EventQueue.invokeLater(new Runnable() {
+
+//            @Override
+//            public void run() {
+                rebuildPath();
+//            }
+//        });
         
-        rebuildPath();
         label.setText("");
         label.setSize(label.getPreferredSize());
         label.setVisible(true);
@@ -223,6 +228,7 @@ public class Edge implements Serializable, Element {
     }
 
     public Color getColor() {
+        if (inherit) return defColor;
         return color;
     }
 
@@ -240,6 +246,7 @@ public class Edge implements Serializable, Element {
     }
 
     public int getPathMode() {
+        if (inherit) return defPathMode;
         return pathMode;
     }
 
@@ -247,6 +254,7 @@ public class Edge implements Serializable, Element {
         if (pathMode<0 || pathMode>2) throw new IllegalArgumentException("pathMode must be 0, 1 ot 2");
         this.pathMode = pathMode;
         inherit = false;
+        rebuildPath();
     }
     
     public boolean hit(Point2D p, int distance) {
@@ -257,7 +265,8 @@ public class Edge implements Serializable, Element {
         Point2D line = new Point2D.Double(p.getX()-s.getCenterX(),p.getY()-s.getCenterY());
         //normalize line (so length is 1 and we can walk pixel by pixel)
         double length = Math.abs(Math.abs(line.getX())>Math.abs(line.getY())?line.getX():line.getY());
-        line.setLocation(line.getX()/length, line.getY()/length);
+        if (length==0) line.setLocation(0,1); //if we're right at the center walk downwards
+        else line.setLocation(line.getX()/length, line.getY()/length);
         //get starting point
         double x = (Math.abs(line.getX())>Math.abs(line.getY())?s.getWidth()/2:s.getHeight()/2);
         Point2D q = new Point2D.Double(s.getCenterX() + line.getX()*x, s.getCenterY() + line.getY()*x);
@@ -272,6 +281,17 @@ public class Edge implements Serializable, Element {
         return q;
     }
     
+    private void drawArrow(Path2D path, Point2D pos, Point2D from, double angleDeg, double length) {
+        final double n = Math.tan(angleDeg*Math.PI/180); 
+        final double m = Math.sqrt(1+n*n)*pos.distance(from)/length;
+        //System.out.println(n+ " "+m);
+        path.lineTo(pos.getX()-((pos.getX()-from.getX())-n*(pos.getY()-from.getY()))/m,
+                pos.getY()-((pos.getY()-from.getY())+n*(pos.getX()-from.getX()))/m);
+        path.lineTo(pos.getX()-((pos.getX()-from.getX())+n*(pos.getY()-from.getY()))/m,
+                pos.getY()-((pos.getY()-from.getY())-n*(pos.getX()-from.getX()))/m);
+        path.lineTo(pos.getX(), pos.getY());
+    }
+    
     public void rebuildPath() {
         //Iterator<Point> itr = supportPoints.iterator();
         ListIterator<Point> itr = supportPoints.listIterator();
@@ -284,11 +304,12 @@ public class Edge implements Serializable, Element {
         //finish point
         if (degIn != AUTOMATIC) element = new Point2D.Double(to.getShape().getCenterX()+Math.cos(degIn*Math.PI/180),to.getShape().getCenterY()+Math.sin(degIn*Math.PI/180));
         else if (!supportPoints.isEmpty()) element = supportPoints.get(supportPoints.size()-1);
-        else element = new Point2D.Double(from.getShape().getCenterX(),from.getShape().getCenterY()+0.1);
+        else element = new Point2D.Double(from.getShape().getCenterX(),from.getShape().getCenterY());
         Point2D finish = getIntersectionPoint(element, to.getShape());
         
         path = new Path2D.Float();
-        path.moveTo(start.getX(), start.getY());
+        element = start;
+        path.moveTo(element.getX(), element.getY());
         if (!supportPoints.isEmpty()) {
             if (pathMode==LINE) {
                 while (itr.hasNext()) {
@@ -314,14 +335,13 @@ public class Edge implements Serializable, Element {
         path.lineTo(finish.getX(), finish.getY());
         
         //arrow
-        Point2D t = new Point2D.Double(finish.getX()-element.getX(),finish.getY()-element.getY());
-        double n = Math.tan(25*Math.PI/180);
-        double m = Math.sqrt(1+n*n)*t.distance(0, 0)/10;
-        path.lineTo(finish.getX()-((finish.getX()-element.getX())-n*(finish.getY()-element.getY()))/m,
-                finish.getY()-((finish.getY()-element.getY())+n*(finish.getX()-element.getX()))/m);
-        path.lineTo(finish.getX()-((finish.getX()-element.getX())+n*(finish.getY()-element.getY()))/m,
-                finish.getY()-((finish.getY()-element.getY())-n*(finish.getX()-element.getX()))/m);
-        path.lineTo(finish.getX(), finish.getY());
+        
+        if (Math.abs(finish.distance(element))<1E-10) {
+            Point2D t = new Point2D.Double(finish.getX()-from.getShape().getCenterX(),finish.getY()-from.getShape().getCenterY());
+            t.setLocation(finish.getX()+2*t.getX(), finish.getY()+2*t.getY());
+            drawArrow(path,finish,t,25,10);
+        }   
+        else drawArrow(path,finish,element,25,10);
         
         /* There seems to be no elegant way to determine if a Point lies 
          * within a specific distance of a line but to close the whole path 

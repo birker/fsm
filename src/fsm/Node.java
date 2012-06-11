@@ -194,6 +194,4 @@ public class Node implements Serializable, Element{
         return "Node: " + label + (init?" i":"") + (fin?" f":"") + "@"+getShape().getCenterX()+","+getShape().getCenterY();
     }
 
-   
-    
 }

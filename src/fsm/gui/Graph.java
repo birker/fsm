@@ -55,7 +55,8 @@ public class Graph extends JPanel {
     /** Creates new form Graph */
     public Graph(Fsm fsm) {
         this.fsm = fsm;
-        this.setLayout(null);
+        setLayout(null);
+        setFocusable(true);
         initComponents();
     }
 
@@ -69,8 +70,6 @@ public class Graph extends JPanel {
         while (itr2.hasNext()) {
             Edge element = itr2.next();
             add(element.getLabel());
-            //g2d.setColor(Color.yellow);
-            //g2d.fill(element.getPath());
             if (fsm.getChoice() == element) {
                 g2d.setColor(Color.red);
                 element.getLabel().setForeground(Color.red);
@@ -78,6 +77,7 @@ public class Graph extends JPanel {
                 g2d.setColor(element.getColor());
                 element.getLabel().setForeground(element.getColor());
             }
+            g2d.fill(element.getPath());
             g2d.draw(element.getPath());
         }
         Iterator<Node> itr = fsm.getStates().iterator();
@@ -140,7 +140,6 @@ public class Graph extends JPanel {
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.setSize(400, 400);
         f.setLocation(200, 200);
-        f.setLayout(null);
         Fsm a = new Fsm();
         Node n = a.addState(new Point(200, 100));
         n.setFinal(true);
@@ -191,8 +190,6 @@ public class Graph extends JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jTextField1 = new javax.swing.JTextField();
-
         addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 formMouseClicked(evt);
@@ -211,16 +208,6 @@ public class Graph extends JPanel {
                 formKeyPressed(evt);
             }
         });
-
-        jTextField1.setText("01");
-        jTextField1.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                jTextField1KeyPressed(evt);
-            }
-        });
-        jTextField1.setLocation(0, 0);
-        jTextField1.setSize(100, 21);
-        add(jTextField1);
     }// </editor-fold>//GEN-END:initComponents
     private Point mouseStart;
     private Element mouseElement;
@@ -344,6 +331,19 @@ public class Graph extends JPanel {
                     }
                     mouseStart = evt.getPoint();
                 }
+            }if (mouseElement instanceof Node) {
+                //move Node
+                fsm.setChoice(mouseElement);
+                Node element = (Node) mouseElement;
+                element.getShape().setFrame(element.getShape().getX() + evt.getX() - mouseStart.getX(), element.getShape().getY() + evt.getY() - mouseStart.getY(), element.getShape().getWidth(), element.getShape().getHeight());
+                mouseStart = evt.getPoint();
+                Iterator<Edge> itr = fsm.getTransitions().iterator();
+                while (itr.hasNext()) {
+                    Edge e = itr.next();
+                    if (e.getFrom() == fsm.getChoice() || e.getTo() == fsm.getChoice()) {
+                        e.rebuildPath();
+                    }
+                }
             }
             repaint();
             setSP();
@@ -382,18 +382,18 @@ public class Graph extends JPanel {
                 if (((RectangularShape)itr.next()).contains(mouseStart)) mouseElement = fsm.getChoice();
             }
         }
-        itr = fsm.getStates().iterator();
-        while (itr.hasNext() && mouseElement == null) {
-            Node n = (Node) itr.next();
-            if (n.getShape().contains(evt.getPoint())) {
-                mouseElement = n;
-            }
-        }
         itr = fsm.getTransitions().iterator();
         while (itr.hasNext() && mouseElement == null) {
             Edge e = (Edge) itr.next();
             if (e.hit(evt.getPoint(), 4) || e.getLabel().getBounds().contains(evt.getPoint())) {
                 mouseElement = e;
+            }
+        }
+        itr = fsm.getStates().iterator();
+        while (itr.hasNext() && mouseElement == null) {
+            Node n = (Node) itr.next();
+            if (n.getShape().contains(evt.getPoint())) {
+                mouseElement = n;
             }
         }
     }//GEN-LAST:event_formMousePressed
@@ -426,12 +426,6 @@ public class Graph extends JPanel {
         repaint();
     }//GEN-LAST:event_formKeyPressed
 
-    private void jTextField1KeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField1KeyPressed
-        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-            System.out.println("Teste " + jTextField1.getText() + ": " + fsm.accept(jTextField1.getText()));
-        }
-    }//GEN-LAST:event_jTextField1KeyPressed
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables
 }
