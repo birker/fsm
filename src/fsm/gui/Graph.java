@@ -18,6 +18,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -57,6 +58,7 @@ public class Graph extends JPanel {
         this.fsm = fsm;
         setLayout(null);
         setFocusable(true);
+        setOpaque(false);
         initComponents();
     }
 
@@ -77,8 +79,8 @@ public class Graph extends JPanel {
                 g2d.setColor(element.getColor());
                 element.getLabel().setForeground(element.getColor());
             }
-            g2d.fill(element.getPath());
-            g2d.draw(element.getPath());
+            g2d.fill(element.getPath(true));
+            g2d.draw(element.getPath(false));
         }
         Iterator<Node> itr = fsm.getStates().iterator();
         while (itr.hasNext()) {
@@ -128,11 +130,37 @@ public class Graph extends JPanel {
         }
 
     }
+    
+  
+    public Rectangle getBoundingBox() {
+        Point min = new Point(getWidth(),getHeight());
+        Point max = new Point(0,0);
+        Iterator i = fsm.getStates().iterator();
+        while (i.hasNext()) {
+            Node n = (Node)i.next();
+            min.setLocation(Math.min(min.getX(), n.getShape().getX()), Math.min(min.getY(), n.getShape().getY()));
+            max.setLocation(Math.max(max.getX(), n.getShape().getX()+n.getShape().getWidth()), Math.max(max.getY(), n.getShape().getY()+n.getShape().getHeight()));            
+        }
+        i = fsm.getTransitions().iterator();
+        while (i.hasNext()) {
+            Edge e = (Edge)i.next();
+            min.setLocation(Math.min(min.x, e.getLabel().getX()), Math.min(min.y, e.getLabel().getY()));
+            max.setLocation(Math.max(max.x, e.getLabel().getX()+e.getLabel().getWidth()), Math.max(max.y, e.getLabel().getY()+e.getLabel().getHeight()));            
+            Iterator<Point> it = e.getSupportPointIterator();
+            while (it.hasNext()) {
+                Point p = it.next();
+                min.setLocation(Math.min(min.x, p.x), Math.min(min.y, p.y));
+                max.setLocation(Math.max(max.x, p.x), Math.max(max.y, p.y));            
+            }
+        }
+        return new Rectangle(min.x, min.y, max.x-min.x+1, max.y-min.y+1);
+    }
 
-    public void saveToPNG(String filename) throws IOException {
+    public void saveToPNG(File file) throws IOException {
         BufferedImage image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
-        paintAll(image.getGraphics());
-        ImageIO.write(image, "PNG", new File(filename));
+        print(image.getGraphics());
+        Rectangle r = getBoundingBox();
+        ImageIO.write(image.getSubimage(r.x, r.y, r.width, r.height), "PNG", file);
     }
 
     public static void main(String[] args) {
@@ -141,33 +169,11 @@ public class Graph extends JPanel {
         f.setSize(400, 400);
         f.setLocation(200, 200);
         Fsm a = new Fsm();
-        Node n = a.addState(new Point(200, 100));
-        n.setFinal(true);
-        n.setInitial(true);
-        n.setLabel("q0");
-        n = a.addState(new Point(5, 100));
-
-        Edge e = a.addTransition(a.getStates().get(0), a.getStates().get(1));
-        e.addSupportPoint(new Point(125,90));
-        //a.getTransitions().get(0).addSupportPoint(new Point(220, 120));
-        //a.getTransitions().get(0).addSupportPoint(new Point(220, 25));
-        //a.getTransitions().get(0).addSupportPoint(new Point(120,25));
-        //a.getTransitions().get(0).setDegOut(Edge.WEST);
-        //a.getTransitions().get(0).setDegIn(45);
-
-        e = a.addTransition(a.getStates().get(0), a.getStates().get(0));
-        e.addSupportPoint(new Point(210,160));
-        e.addSupportPoint(new Point(230,160));
-//        a.getTransitions().get(1).addSupportPoint(new Point(120, 180));
-//        a.getTransitions().get(1).setDegOut(Edge.SOUTH - 10);
-//        a.getTransitions().get(1).setDegIn(Edge.SOUTH + 10);
         Graph g = new Graph(a);
         g.setBounds(0, 0, 400, 400);
         g.setFocusable(true);
         f.getContentPane().add(g);
         f.setVisible(true);
-
-
     }
     
     private void setSP() {
@@ -359,7 +365,8 @@ public class Graph extends JPanel {
                 itr = fsm.getTransitions().iterator();
                 while (itr.hasNext()) {
                     Edge element = (Edge) itr.next();
-                    element.getPath().transform(AffineTransform.getTranslateInstance(evt.getX() - mouseStart.getX(), evt.getY() - mouseStart.getY()));
+                    element.getPath(true).transform(AffineTransform.getTranslateInstance(evt.getX() - mouseStart.getX(), evt.getY() - mouseStart.getY()));
+                    element.getPath(false).transform(AffineTransform.getTranslateInstance(evt.getX() - mouseStart.getX(), evt.getY() - mouseStart.getY()));
                     element.getLabel().setLocation((int)(element.getLabel().getX()+evt.getX() - mouseStart.getX()), (int)(element.getLabel().getY()+evt.getY() - mouseStart.getY()));
                     Iterator<Point> it = element.getSupportPointIterator();
                     while (it.hasNext()) {

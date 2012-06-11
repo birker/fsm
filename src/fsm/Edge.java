@@ -44,6 +44,7 @@ public class Edge implements Serializable, Element {
     private int degOut = AUTOMATIC;
     private ArrayList<Point> supportPoints = new ArrayList<Point>();
     private Path2D path;
+    private Path2D pathOpen;
     private boolean inherit = true;
     private int pathMode = QUADRATIC_BEZIER;
     private Color color = defColor;
@@ -86,8 +87,9 @@ public class Edge implements Serializable, Element {
     }
     
     //sollte readonly sein. nur zum malen;
-    public Path2D getPath() {
-        return path;
+    public Path2D getPath(boolean closed) {
+        if (closed) return path;
+        else return pathOpen;
     }
     
     public Node getFrom() {
@@ -342,6 +344,8 @@ public class Edge implements Serializable, Element {
             drawArrow(path,finish,t,25,10);
         }   
         else drawArrow(path,finish,element,25,10);
+        
+        pathOpen = (Path2D) path.clone();
         
         /* There seems to be no elegant way to determine if a Point lies 
          * within a specific distance of a line but to close the whole path 
