@@ -11,7 +11,6 @@ import java.awt.geom.Point2D;
 import java.awt.geom.RectangularShape;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.ListIterator;
 import javax.swing.JLabel;
 
@@ -33,6 +32,7 @@ public class Edge implements Serializable, Element {
     
     private static int defPathMode = QUADRATIC_BEZIER;
     private static Color defColor = Color.BLACK;
+    private static boolean perpendicular = false;
     
     private Node from;
     private Node to;
@@ -52,23 +52,42 @@ public class Edge implements Serializable, Element {
     //index, for constructing automaton piece by pieve.
     private int index;
     
-    public Edge(Node from, Node to) {
+    public Edge(Node from, Node to, boolean autoSP) {
         this.from = from;
         this.to = to;
-        //TODO automatische SupportPoints
-//        java.awt.EventQueue.invokeLater(new Runnable() {
-
-//            @Override
-//            public void run() {
-                rebuildPath();
-//            }
-//        });
-        
-        label.setText("");
-        label.setSize(label.getPreferredSize());
+        if (autoSP) {
+        if (from==to) {
+            supportPoints.add(new Point((int)(from.getShape().getX()+from.getPreferredWidth()/4),(int)(from.getShape().getCenterY()+from.getShape().getHeight())));
+            supportPoints.add(new Point((int)(from.getShape().getX()+3*from.getPreferredWidth()/4),(int)(from.getShape().getCenterY()+from.getShape().getHeight())));
+        } else if (perpendicular) {
+            if (!(from.getShape().getCenterY()==to.getShape().getCenterY() && from.getShape().getCenterX()==to.getShape().getCenterX())) {
+                supportPoints.add(new Point((int)to.getShape().getCenterX(),(int)from.getShape().getCenterY()));
+            }
+        } else {
+        for (int i = 0; i < to.getEdges().size(); i++) {
+            if (to.getEdges().get(i).getTo()==from) {
+                Point p = new Point((int)(0.5*(to.getShape().getCenterX() - from.getShape().getCenterX())),(int)(0.5*(to.getShape().getCenterY() - from.getShape().getCenterY())));
+                double l = p.distance(0, 0);
+                supportPoints.add(new Point((int)(to.getShape().getCenterX()-p.x+p.y/l*10),(int)(to.getShape().getCenterY()-p.y-p.x/l*20)));
+                if (to.getEdges().get(i).getSupportPoints().isEmpty()) {
+                    to.getEdges().get(i).getSupportPoints().add(new Point((int)(to.getShape().getCenterX()-p.x-p.y/l*10),(int)(to.getShape().getCenterY()-p.y+p.x/l*20)));
+                    to.getEdges().get(i).rebuildPath();
+                }
+            }
+        }
+        }
+        }
         label.setVisible(true);
     }
 
+    public static boolean isPerpendicular() {
+        return perpendicular;
+    }
+
+    public static void setPerpendicular(boolean perpendicular) {
+        Edge.perpendicular = perpendicular;
+    }
+    
     public static Color getDefColor() {
         return defColor;
     }
@@ -100,7 +119,7 @@ public class Edge implements Serializable, Element {
         from.getEdges().remove(this);
         from = node;
         from.getEdges().add(this);
-        rebuildPath();
+        //rebuildPath();
     }
     
     public Node getTo() {
@@ -109,47 +128,13 @@ public class Edge implements Serializable, Element {
     
     public void setTo(Node node) {
         to = node;
-        rebuildPath();
+        //rebuildPath();
     }
     
-    /*/zu public
+    //zu public
     public ArrayList<Point> getSupportPoints() {
         return supportPoints;
     }//*/
-    
-    public void addSupportPoint(Point p) {
-        if (p == null) throw new IllegalArgumentException("Can't add NULL");
-        supportPoints.add(p);
-        rebuildPath();
-    }
-
-    public void addSupportPoint(int index, Point p) {
-        if (p == null) throw new IllegalArgumentException("Can't add NULL");
-        supportPoints.add(index, p);
-        rebuildPath();
-    }    
-    
-    public void removeSupportPoint(int index) {
-        supportPoints.remove(index);
-        rebuildPath();
-    }
-    
-    public void removeSupportPoint(Point p) {
-        supportPoints.remove(p);
-        rebuildPath();
-    }
-    
-    public Point getSupportPoint(int index) {
-        return supportPoints.get(index);
-    }    
-    
-    public int getSupportPointCount() {
-        return supportPoints.size();
-    }
-    
-    public Iterator getSupportPointIterator() {
-        return supportPoints.iterator();
-    }
     
     //zu public
     public ArrayList<String> getTransitions() {
@@ -164,40 +149,10 @@ public class Edge implements Serializable, Element {
         label.setSize(label.getPreferredSize());
     }
     
-    public void addTransition(String s) {
-        if (s == null) throw new IllegalArgumentException("Can't add NULL");
-        trans.add(s);
-        updateLabel();
-    }
-    
-    public void removeTransition(int index) {
-        trans.remove(index);
-        updateLabel();
-    }
-    
-    public void removeTransition(String s) {
-        trans.remove(s);
-        updateLabel();
-    }
-    
-    public String getTransition(int index) {
-        return trans.get(index);
-    }    
-    
-    public int getTransitionCount() {
-        return trans.size();
-    }
-    
-    public Iterator getTransitionIterator() {
-        return trans.iterator();
-    }
-    
-    public boolean containsTransition(String s) {
-        return trans.contains(s);
-    }
-
     //sollte readonly sein. nur zu lesen zum malen.
     public JLabel getLabel() {
+        //TODO update label here?
+        updateLabel();
         return label;
     }
 
@@ -208,7 +163,7 @@ public class Edge implements Serializable, Element {
     public void setDegIn(int degIn) {
         if (degIn<-1 || degIn>359) throw new IllegalArgumentException("0 to 359 or -1");
         this.degIn = degIn;
-        rebuildPath();
+        //rebuildPath();
     }
 
     public int getDegOut() {
@@ -218,7 +173,7 @@ public class Edge implements Serializable, Element {
     public void setDegOut(int degOut) {
         if (degOut<-1 || degOut>359) throw new IllegalArgumentException("0 to 359 or -1");
         this.degOut = degOut;
-        rebuildPath();
+        //rebuildPath();
     }
     
     public boolean isInherit() {
@@ -256,7 +211,7 @@ public class Edge implements Serializable, Element {
         if (pathMode<0 || pathMode>2) throw new IllegalArgumentException("pathMode must be 0, 1 ot 2");
         this.pathMode = pathMode;
         inherit = false;
-        rebuildPath();
+        //rebuildPath();
     }
     
     public boolean hit(Point2D p, int distance) {
@@ -286,7 +241,6 @@ public class Edge implements Serializable, Element {
     private void drawArrow(Path2D path, Point2D pos, Point2D from, double angleDeg, double length) {
         final double n = Math.tan(angleDeg*Math.PI/180); 
         final double m = Math.sqrt(1+n*n)*pos.distance(from)/length;
-        //System.out.println(n+ " "+m);
         path.lineTo(pos.getX()-((pos.getX()-from.getX())-n*(pos.getY()-from.getY()))/m,
                 pos.getY()-((pos.getY()-from.getY())+n*(pos.getX()-from.getX()))/m);
         path.lineTo(pos.getX()-((pos.getX()-from.getX())+n*(pos.getY()-from.getY()))/m,
@@ -337,7 +291,6 @@ public class Edge implements Serializable, Element {
         path.lineTo(finish.getX(), finish.getY());
         
         //arrow
-        
         if (Math.abs(finish.distance(element))<1E-10) {
             Point2D t = new Point2D.Double(finish.getX()-from.getShape().getCenterX(),finish.getY()-from.getShape().getCenterY());
             t.setLocation(finish.getX()+2*t.getX(), finish.getY()+2*t.getY());
@@ -351,8 +304,6 @@ public class Edge implements Serializable, Element {
          * within a specific distance of a line but to close the whole path 
          * and then intersect. This has to be done manually all the way back, 
          * because he would just lineTo the starting point, if done automatically.*/
-        //Path2D path2 = (Path2D) path.clone();
-        //ListIterator<Point> itr = supportPoints.listIterator(supportPoints.size()-1);
         if (!supportPoints.isEmpty()) {
             if (pathMode==LINE) {
                 while (itr.hasPrevious()) {

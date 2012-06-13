@@ -8,8 +8,12 @@ import java.awt.Color;
 import java.awt.Point;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.RectangularShape;
+import java.awt.geom.RoundRectangle2D;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Stack;
+import javax.swing.JLabel;
+import javax.swing.SwingConstants;
 
 /**
  *
@@ -22,9 +26,10 @@ public class Node implements Serializable, Element{
     private static Color defFillColor = Color.WHITE;
     private static boolean defFillNode = false;
     private static boolean defAutoWidth = false;
-    private static RectangularShape defShape = new Ellipse2D.Double(0, 0, 40, 40);
+    private static RectangularShape defShape = new RoundRectangle2D.Double(0,0,40,40,40,40);//new Ellipse2D.Double(0, 0, 40, 40);
     
-    private String label = "";
+    private String text = "";
+    private JLabel label = new JLabel("");
     private boolean init = false;
     private boolean fin = false;
     private ArrayList<Edge> edges = new ArrayList<Edge>(); //redundant but good for simulation
@@ -32,17 +37,20 @@ public class Node implements Serializable, Element{
     private int index;
     private boolean inherit = true;
     //graphical properties    
-    private Color color;
+    private Color color = defColor;
     private Color fillColor = Color.WHITE;
     private boolean fillNode = false;
     private RectangularShape shape;
     private boolean autoWidth = false;
+    private int preferredWidth;
     
     ////////////////Constructor///////////////////////////////////////////
     
     public Node(RectangularShape shape, Point pos) {
         this.shape = (RectangularShape) shape.clone();
         this.shape.setFrame(pos.x, pos.y, shape.getWidth(), shape.getHeight());
+        preferredWidth = (int)shape.getWidth();
+        label.setHorizontalAlignment(SwingConstants.CENTER);
     }
 
     ////////////////Getter and Setter for static default values////////////////
@@ -85,7 +93,6 @@ public class Node implements Serializable, Element{
 
     public static void setDefShape(RectangularShape defShape) {
         Node.defShape = defShape;
-        //We can't replace the old shapes here.
     }
     
     //////////////////Getter and Setter for local values///////////////////////
@@ -106,12 +113,17 @@ public class Node implements Serializable, Element{
         init = value;
     }
     
-    public void setLabel(String text) {
-        label = text;
+    public void setText(String text) {
+        this.text = text;
+        updateLabel();
     }
     
-    public String getLabel() {
+    public JLabel getLabel() {
         return label;
+    }
+    
+    public String getText() {
+        return text;
     }
 
     public RectangularShape getShape() {
@@ -121,11 +133,15 @@ public class Node implements Serializable, Element{
     public void setDefaultShape(Point pos) {
         shape = (RectangularShape) Node.defShape.clone();
         shape.setFrame(pos.x, pos.y, shape.getWidth(), shape.getHeight());
+        preferredWidth = (int)shape.getWidth();
+        updateLabel();
     }
     
     public void setShape(RectangularShape shape) {
         this.shape = shape;
+        preferredWidth = (int)shape.getWidth();
         inherit = false;
+        updateLabel();
     }
     
     public Color getColor() {
@@ -165,6 +181,7 @@ public class Node implements Serializable, Element{
 
     public void setAutoWidth(boolean autoWidth) {
         this.autoWidth = autoWidth;
+        updateLabel();
         inherit = false;
     }
 
@@ -184,9 +201,76 @@ public class Node implements Serializable, Element{
         inherit = true;
         setDefaultShape(shape.getBounds().getLocation());
     }
+
+    public int getPreferredWidth() {
+        return preferredWidth;
+    }
         
     public ArrayList<Edge> getEdges() {
         return edges;
+    }
+    
+    private void updateLabel() {
+        label.setText(parseString(text));
+        if (isAutoWidth()) {
+                getShape().setFrame(getShape().getX(), getShape().getY(), Math.max(getPreferredWidth(), label.getPreferredSize().width+4), getShape().getHeight());                
+        } else if (getShape().getWidth()!=getPreferredWidth()) {
+            getShape().setFrame(getShape().getX(), getShape().getY(), getPreferredWidth(), getShape().getHeight());
+        }
+        label.setSize((int) getShape().getWidth(), (int) getShape().getHeight());
+    }
+    
+   public static String parseString(String s) {
+        StringBuilder t = new StringBuilder();
+        Stack<String> open = new Stack();
+        boolean esc = false;
+        boolean ins = false;
+        boolean html = false;
+        for (int i = 0; i< s.length(); i++) {
+            final char c = s.charAt(i);
+            if (esc) {
+                t.append(c);
+                esc = false;
+                if (ins) {
+                    t.append(open.pop());
+                    ins = false;
+                }
+            } else if (c=='\\') {
+                esc = true;
+            } else if (ins && c!='{') {
+                t.append(c).append(open.pop());
+                ins = false;
+            } else if (c=='_') {
+                t.append("<sub>");
+                open.add("</sub>");
+                ins = true;
+                html = true;
+            } else if (c=='^') {
+                t.append("<sup>");
+                open.add("</sup>");
+                ins = true;
+                html = true;
+            } else if (c=='{') {
+                if (!ins) t.append(c);
+                else ins = false;
+            } else if (c=='}') {
+                if (open.isEmpty()) t.append(c);
+                else t.append(open.pop());
+            } else {
+                t.append(c);
+            }
+        }
+        while (open.size()>1) t.append(open.pop());
+        if (ins) {
+            if (open.pop().equals("</sub>")) t.append('_');
+            else t.append('^');
+        } else if (!open.isEmpty()) t.append(open.pop());
+        else if (esc) t.append('\\');
+        if (html) {
+            t.append("</html>");
+            t.insert(0, "<html>");
+        }
+        return t.toString();
     }
 
     @Override

@@ -31,27 +31,20 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Observable;
+import java.util.Observer;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 
 /**
  *
  * @author Konnarr
  */
-public class Graph extends JPanel {
+public class Graph extends JPanel implements Observer {
 
     private Fsm fsm;
-    private static final JLabel text;
     private ArrayList<RectangularShape> sp = new ArrayList<RectangularShape>();
-
-    static {
-        text = new JLabel();
-        text.setHorizontalAlignment(SwingConstants.CENTER);
-    }
 
     /** Creates new form Graph */
     public Graph(Fsm fsm) {
@@ -60,38 +53,46 @@ public class Graph extends JPanel {
         setFocusable(true);
         setOpaque(false);
         initComponents();
+        
     }
-
+    
     @Override
     protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        Iterator<Edge> itr2 = fsm.getTransitions().iterator();
-        while (itr2.hasNext()) {
-            Edge element = itr2.next();
-            add(element.getLabel());
-            if (fsm.getChoice() == element) {
+        for (Edge element: fsm.getTransitions()) {
+            //if (element.getLabel().getParent()==null)
+            //add(element.getLabel()); böse idee, er macht damit ein repaint nach dem anderen
+            if (fsm.getActive().contains(element)) {
+                g2d.setColor(Color.cyan);
+                element.getLabel().setForeground(Color.cyan);
+            }
+            else if (fsm.getChoice() == element) {
                 g2d.setColor(Color.red);
                 element.getLabel().setForeground(Color.red);
             } else {
                 g2d.setColor(element.getColor());
                 element.getLabel().setForeground(element.getColor());
             }
+            if (element.getPath(false)==null) element.rebuildPath();
+            g2d.translate(element.getLabel().getX(), element.getLabel().getY());
+            element.getLabel().paint(g);
+            g2d.translate(-element.getLabel().getX(), -element.getLabel().getY());
             g2d.fill(element.getPath(true));
             g2d.draw(element.getPath(false));
         }
-        Iterator<Node> itr = fsm.getStates().iterator();
-        while (itr.hasNext()) {
-            Node element = itr.next();
+        for (Node element: fsm.getStates()) {      
             //fill
-            if (element.isFillNode()) {
+            if (fsm.getActive().contains(element)) {
+                g2d.setColor(Color.CYAN);
+                g2d.fill(element.getShape());
+            } else if (element.isFillNode()) {
               g2d.setColor(element.getFillColor());
               g2d.fill(element.getShape());
             }
             //border
-            if (fsm.getChoice() instanceof Node && fsm.getChoice() == element) {
+            if (fsm.getChoice() == element) {
                 g2d.setColor(Color.red);
             } else {
                 g2d.setColor(element.getColor());
@@ -114,41 +115,31 @@ public class Graph extends JPanel {
             AttributedString as1 = new AttributedString("1234567890");
             as1.addAttribute(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUPER, 5, 7);
             g2d.drawString(as1.getIterator(), 15, 60);*/
-            text.setText(element.getLabel());
-            text.setSize((int) element.getShape().getWidth(), (int) element.getShape().getHeight());
             g2d.translate(element.getShape().getX(), element.getShape().getY());
-            text.paint(g);
+            element.getLabel().paint(g);
             g2d.translate(-element.getShape().getX(), -element.getShape().getY());
         }
         if (fsm.getChoice() instanceof Edge) {
             //draw Support Points
             g2d.setColor(Color.blue);
-            Iterator<RectangularShape> it = sp.iterator();
-            while (it.hasNext()) {
-                g2d.fill(it.next());
+            for (RectangularShape s: sp) {
+                g2d.fill(s);
             }
         }
 
     }
     
-  
     public Rectangle getBoundingBox() {
         Point min = new Point(getWidth(),getHeight());
         Point max = new Point(0,0);
-        Iterator i = fsm.getStates().iterator();
-        while (i.hasNext()) {
-            Node n = (Node)i.next();
+        for (Node n: fsm.getStates()) {
             min.setLocation(Math.min(min.getX(), n.getShape().getX()), Math.min(min.getY(), n.getShape().getY()));
             max.setLocation(Math.max(max.getX(), n.getShape().getX()+n.getShape().getWidth()), Math.max(max.getY(), n.getShape().getY()+n.getShape().getHeight()));            
         }
-        i = fsm.getTransitions().iterator();
-        while (i.hasNext()) {
-            Edge e = (Edge)i.next();
+        for (Edge e: fsm.getTransitions()) {
             min.setLocation(Math.min(min.x, e.getLabel().getX()), Math.min(min.y, e.getLabel().getY()));
             max.setLocation(Math.max(max.x, e.getLabel().getX()+e.getLabel().getWidth()), Math.max(max.y, e.getLabel().getY()+e.getLabel().getHeight()));            
-            Iterator<Point> it = e.getSupportPointIterator();
-            while (it.hasNext()) {
-                Point p = it.next();
+            for (Point p: e.getSupportPoints()) {
                 min.setLocation(Math.min(min.x, p.x), Math.min(min.y, p.y));
                 max.setLocation(Math.max(max.x, p.x), Math.max(max.y, p.y));            
             }
@@ -179,9 +170,7 @@ public class Graph extends JPanel {
     private void setSP() {
         if (fsm.getChoice() instanceof Edge) {
             sp.clear();
-            Iterator<Point> it = ((Edge)fsm.getChoice()).getSupportPointIterator();
-            while (it.hasNext()) {
-                Point p = it.next();
+            for (Point p: ((Edge)fsm.getChoice()).getSupportPoints()) {
                 sp.add(new Rectangle2D.Double(p.x-2, p.y-2, 4, 4));
             }
         }
@@ -192,7 +181,6 @@ public class Graph extends JPanel {
      * WARNING: Do NOT modify this code. The content of this method is
      * always regenerated by the Form Editor.
      */
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -228,10 +216,11 @@ public class Graph extends JPanel {
                 fsm.setChoice(fsm.addState(evt.getPoint()));
             } else if (mouseElement instanceof Node && fsm.getChoice() instanceof Node) { 
                 //new Edge
-                fsm.setChoice(fsm.addTransition((Node) fsm.getChoice(), (Node) mouseElement));
+                fsm.setChoice(fsm.addTransition((Node) fsm.getChoice(), (Node) mouseElement, true));
             } else if (mouseElement instanceof Node && fsm.getChoice() instanceof Edge) { 
                 //move Edge
                 ((Edge) fsm.getChoice()).setTo((Node) mouseElement);
+                ((Edge) fsm.getChoice()).rebuildPath();
             }
         } else if (evt.getButton() == MouseEvent.BUTTON2) {
             fsm.setChoice(mouseElement);
@@ -253,12 +242,12 @@ public class Graph extends JPanel {
                 //search supportpoint and delete it if found.
                 int nr = 0;
                 boolean found = false;
-                Iterator<RectangularShape> itr = sp.iterator();
-                while (itr.hasNext() && !found) {
-                    if (itr.next().contains(mouseStart)) {
+                for (RectangularShape s: sp) {
+                    if (s.contains(mouseStart)) {
                         found = true;
-                        element.removeSupportPoint(nr);
+                        element.getSupportPoints().remove(nr);
                         element.rebuildPath();
+                        break;
                     }
                     nr++;
                 }
@@ -271,8 +260,7 @@ public class Graph extends JPanel {
             
         }
         setSP();
-        repaint();
-        
+        fsm.notifyObs();//repaint();
     }//GEN-LAST:event_formMouseClicked
 
     private void formMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseDragged
@@ -283,9 +271,7 @@ public class Graph extends JPanel {
                 Node element = (Node) mouseElement;
                 element.getShape().setFrame(element.getShape().getX() + evt.getX() - mouseStart.getX(), element.getShape().getY() + evt.getY() - mouseStart.getY(), element.getShape().getWidth(), element.getShape().getHeight());
                 mouseStart = evt.getPoint();
-                Iterator<Edge> itr = fsm.getTransitions().iterator();
-                while (itr.hasNext()) {
-                    Edge e = itr.next();
+                for (Edge e: fsm.getTransitions()) {
                     if (e.getFrom() == fsm.getChoice() || e.getTo() == fsm.getChoice()) {
                         e.rebuildPath();
                     }
@@ -301,24 +287,22 @@ public class Graph extends JPanel {
                     //move supportpoint
                     boolean found = false;
                     int nr = 0;
-                    Iterator<RectangularShape> itr = sp.iterator();
-                    while (itr.hasNext() && !found) {
-                        if (itr.next().contains(mouseStart)) {
+                    for (RectangularShape s: sp) {
+                        if (s.contains(mouseStart)) {
                             found = true;
-                            element.getSupportPoint(nr).translate((int)(evt.getX() - mouseStart.getX()), (int)(evt.getY() - mouseStart.getY()));
+                            element.getSupportPoints().get(nr).translate((int)(evt.getX() - mouseStart.getX()), (int)(evt.getY() - mouseStart.getY()));
                             element.rebuildPath();
+                            break;
                         }
                         nr++;
                     }
                     if (!found) {
                         //add new support point
-                        Iterator it = element.getSupportPointIterator();
                         nr = 0;
                         int nrsmallest = 0;
                         double distancesmallest = Double.MAX_VALUE;
                         Point2D p = new Point2D.Double(element.getFrom().getShape().getCenterX(),element.getFrom().getShape().getCenterY());
-                        while (it.hasNext()) {
-                            Point2D p2 = (Point2D) it.next();
+                        for (Point2D p2: element.getSupportPoints()) {
                             double distance = Line2D.ptSegDist(p.getX(), p.getY(), p2.getX(), p2.getY(), evt.getX(), evt.getY());
                             if (distance < distancesmallest) {
                                 distancesmallest = distance;
@@ -333,7 +317,7 @@ public class Graph extends JPanel {
                             distancesmallest = distance;
                             nrsmallest = nr;
                         }
-                        element.addSupportPoint(nrsmallest, evt.getPoint());
+                        element.getSupportPoints().add(nrsmallest, evt.getPoint());
                     }
                     mouseStart = evt.getPoint();
                 }
@@ -343,38 +327,31 @@ public class Graph extends JPanel {
                 Node element = (Node) mouseElement;
                 element.getShape().setFrame(element.getShape().getX() + evt.getX() - mouseStart.getX(), element.getShape().getY() + evt.getY() - mouseStart.getY(), element.getShape().getWidth(), element.getShape().getHeight());
                 mouseStart = evt.getPoint();
-                Iterator<Edge> itr = fsm.getTransitions().iterator();
-                while (itr.hasNext()) {
-                    Edge e = itr.next();
+                for (Edge e: fsm.getTransitions()) {
                     if (e.getFrom() == fsm.getChoice() || e.getTo() == fsm.getChoice()) {
                         e.rebuildPath();
                     }
                 }
             }
-            repaint();
+            fsm.notifyObs();//repaint();
             setSP();
         } else if (evt.getModifiers() == MouseEvent.BUTTON3_MASK) {
             if (mouseElement == null) {
                 fsm.setChoice(mouseElement);
                 //move everything
-                Iterator itr = fsm.getStates().iterator();
-                while (itr.hasNext()) {
-                    Node element = (Node)itr.next();
+                for (Node element :fsm.getStates()) {
                     element.getShape().setFrame(element.getShape().getX()+evt.getX() - mouseStart.getX(), element.getShape().getY()+evt.getY() - mouseStart.getY(), element.getShape().getWidth(), element.getShape().getHeight());
                 }
-                itr = fsm.getTransitions().iterator();
-                while (itr.hasNext()) {
-                    Edge element = (Edge) itr.next();
+                for (Edge element: fsm.getTransitions()) {
                     element.getPath(true).transform(AffineTransform.getTranslateInstance(evt.getX() - mouseStart.getX(), evt.getY() - mouseStart.getY()));
                     element.getPath(false).transform(AffineTransform.getTranslateInstance(evt.getX() - mouseStart.getX(), evt.getY() - mouseStart.getY()));
                     element.getLabel().setLocation((int)(element.getLabel().getX()+evt.getX() - mouseStart.getX()), (int)(element.getLabel().getY()+evt.getY() - mouseStart.getY()));
-                    Iterator<Point> it = element.getSupportPointIterator();
-                    while (it.hasNext()) {
-                        it.next().translate((int)(evt.getX() - mouseStart.getX()), (int)(evt.getY() - mouseStart.getY()));
+                    for (Point p: element.getSupportPoints()) {
+                        p.translate((int)(evt.getX() - mouseStart.getX()), (int)(evt.getY() - mouseStart.getY()));
                     }
                 }
                 mouseStart = evt.getPoint();
-                repaint();
+                fsm.notifyObs();//repaint();
             }
         }
     }//GEN-LAST:event_formMouseDragged
@@ -382,25 +359,21 @@ public class Graph extends JPanel {
     private void formMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMousePressed
         mouseStart = evt.getPoint();
         mouseElement = null;
-        Iterator itr;
         if (fsm.getChoice() instanceof Edge) {
-            itr = sp.iterator();
-            while (itr.hasNext() && mouseElement == null) {
-                if (((RectangularShape)itr.next()).contains(mouseStart)) mouseElement = fsm.getChoice();
+            for (RectangularShape s: sp) {
+                if (s.contains(mouseStart)) mouseElement = fsm.getChoice();
             }
         }
-        itr = fsm.getTransitions().iterator();
-        while (itr.hasNext() && mouseElement == null) {
-            Edge e = (Edge) itr.next();
+        for (Edge e: fsm.getTransitions()) {
             if (e.hit(evt.getPoint(), 4) || e.getLabel().getBounds().contains(evt.getPoint())) {
                 mouseElement = e;
+                return;
             }
         }
-        itr = fsm.getStates().iterator();
-        while (itr.hasNext() && mouseElement == null) {
-            Node n = (Node) itr.next();
+        for (Node n: fsm.getStates()) {
             if (n.getShape().contains(evt.getPoint())) {
                 mouseElement = n;
+                return;
             }
         }
     }//GEN-LAST:event_formMousePressed
@@ -411,28 +384,47 @@ public class Graph extends JPanel {
             if (evt.getKeyCode() == KeyEvent.VK_DELETE) {
                 fsm.removeState(n);
             } else if (evt.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-                if (n.getLabel().length() > 0) {
-                    n.setLabel(n.getLabel().substring(0, n.getLabel().length() - 1));
+                if (n.getText().length() > 0) {
+                    n.setText(n.getText().substring(0, n.getText().length() - 1));
+                    if (n.isAutoWidth()) {
+                    for (Edge e: fsm.getTransitions()) {
+                            if (e.getFrom() == fsm.getChoice() || e.getTo() == fsm.getChoice()) {
+                                e.rebuildPath();
+                            }
+                        }
+                    }
                 }
             } else if (evt.getKeyChar() != KeyEvent.CHAR_UNDEFINED && evt.getKeyChar() >= KeyEvent.VK_SPACE) {
-                n.setLabel(n.getLabel() + evt.getKeyChar());
+                n.setText(n.getText() + evt.getKeyChar());
+                    if (n.isAutoWidth()) {
+                        for (Edge e: fsm.getTransitions()) {
+                            if (e.getFrom() == fsm.getChoice() || e.getTo() == fsm.getChoice()) {
+                                e.rebuildPath();
+                            }
+                        }
+                    }
             }
         } else if (fsm.getChoice() instanceof Edge) {
             Edge e = (Edge) fsm.getChoice();
             if (evt.getKeyCode() == KeyEvent.VK_DELETE) {
                 fsm.removeTransition(e);
             } else if (evt.getKeyChar() != KeyEvent.CHAR_UNDEFINED && evt.getKeyChar() >= KeyEvent.VK_SPACE){
-                if (e.containsTransition("" + evt.getKeyChar())) {
-                    e.removeTransition("" + evt.getKeyChar());
+                if (e.getTransitions().contains("" + evt.getKeyChar())) {
+                    e.getTransitions().remove("" + evt.getKeyChar());
                 } else {
-                    e.addTransition("" + evt.getKeyChar());
+                    e.getTransitions().add("" + evt.getKeyChar());
                 }
             }
             e.repositionLabel();
-        }
-        repaint();
+        } else return;
+        fsm.notifyObs();
     }//GEN-LAST:event_formKeyPressed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void update(Observable o, Object arg) {
+        repaint();
+    }
 }

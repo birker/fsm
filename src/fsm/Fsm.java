@@ -10,12 +10,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Observable;
 
 /**
  *
  * @author Konnarr
  */
-public class Fsm implements Serializable{
+public class Fsm  extends Observable implements Serializable{
     private static final long serialVersionUID = 2345541351034924475L;
     private ArrayList<Node> states = new ArrayList<Node>();
     private ArrayList<Edge> transitions = new ArrayList<Edge>();
@@ -23,13 +25,14 @@ public class Fsm implements Serializable{
     private String alphabet;
     
     //special Symbols
-    private char anySymbol = '*'; //we can use that transistion with any read Symbol
-    private char epsSymbol = 'e'; //spontantious transition
-    private HashMap<Character, String> shortSymbols; //a list of short cuts (e.g. x stands for 0 or 1); should work in Blocks, too.
+    private char anySymbol = '?'; //we can use that transition with any read Symbol
+    private char elseSymbol = '!'; //we can use that transition when there is no other
+    private char epsSymbol = '#'; //spontantious transition
+    private HashMap<Character, String> shortSymbols; //a list of short cuts (e.g. x (char) stands for 0 or 1 (String: 01)); should work in Blocks, too.
     
     //for universial levenshtein automatas, we have to be able to read input in blocks. 0 should be automatic
     private int blocksize = 1;
-    //private ? simNonDeterminism
+    //private int simNonDeterminism
     
     //Simulation etc.
     private Element choice;
@@ -38,13 +41,15 @@ public class Fsm implements Serializable{
     public Node addState(Point position) {
         Node n = new Node(Node.getDefShape(), position);
         states.add(n);
+        //notifyObservers();
         return n;
     }
     
-    public Edge addTransition(Node from, Node to) {
-        Edge e = new Edge(from, to);
+    public Edge addTransition(Node from, Node to, boolean autoSP) {
+        Edge e = new Edge(from, to, autoSP);
         transitions.add(e);
         from.getEdges().add(e);
+        //notifyObservers();
         return e;
     }
     
@@ -53,7 +58,8 @@ public class Fsm implements Serializable{
         if (choice == e) choice = null;
         active.remove(e);
         transitions.remove(e);
-        e.getLabel().getParent().remove(e.getLabel());
+        //e.getLabel().getParent().remove(e.getLabel());        
+        //notifyObservers();
     }
     
     public void removeState(Node n) {
@@ -63,6 +69,7 @@ public class Fsm implements Serializable{
             if (e.getFrom() == n || e.getTo() == n) removeTransition(e);
         }
         states.remove(n);
+        //notifyObservers();
     }
     
     public ArrayList<Node> getStates() {
@@ -76,10 +83,6 @@ public class Fsm implements Serializable{
     
     public ArrayList<Element> getActive() {
         return active;
-    }
-
-    public void setActive(ArrayList<Element> active) {
-        this.active = active;
     }
 
     public String getAlphabet() {
@@ -122,39 +125,93 @@ public class Fsm implements Serializable{
         this.epsSymbol = epsSymbol;
     }
 
+    public char getElseSymbol() {
+        return elseSymbol;
+    }
+
+    public void setElseSymbol(char elseSymbol) {
+        this.elseSymbol = elseSymbol;
+    }
+
     public HashMap<Character, String> getShortSymbols() {
         return shortSymbols;
     }
     
-    public boolean accept(String input) {
-        ArrayList<Node> state = new ArrayList<Node>();
+    public void alignNodes() {
+        Iterator<Node> it = getStates().iterator();
+        if (!it.hasNext()) return;
+        Node n0 = it.next();
+        while (it.hasNext()) {
+            Node n = it.next();
+            double offx = n0.getShape().getX();
+            double offy = n0.getShape().getY();
+            double facx = Math.round((n.getShape().getX() - offx) / (3*n0.getPreferredWidth())) ;
+            double facy = Math.round((n.getShape().getY() - offy) / (3*n0.getShape().getHeight())) ;
+            n.getShape().setFrame(offx+facx*3*n0.getPreferredWidth(),offy+facy*3*n0.getShape().getHeight(),n.getShape().getWidth(),n.getShape().getHeight());
+        }
+        Iterator<Edge> it2 = getTransitions().iterator();
+        while (it2.hasNext()) {
+            it2.next().rebuildPath();                
+        }
+        //notifyObservers();
+        
+    }
+    
+    public void notifyObs() {
+        setChanged();
+        notifyObservers();
+    }
+    
+    public void startSim() {
+        active.clear();
         for (Node n: getStates()) {
-            if (n.isInitial()) state.add(n);
+            if (n.isInitial()) active.add(n);
         }
-        //System.out.print("Ableitung: "+state);
-        for (int i = 0; i < input.length(); i++) { //Eingabe durchlaufen
-            for (Node n: (ArrayList<Node>) state.clone()) { //von jedem zustand suchen
-                state.remove(n);
-                for (Edge e: n.getEdges()) { //jede kante betrachten
-                    for (String s: e.getTransitions()) { //jeden übergang der kante
-                        if (s.equals(""+input.charAt(i))) {
-                            state.add(e.getTo());
-                            break;
-                        }
+        //notifyObservers();
+    }
+    
+    public boolean nextStep(String input) {
+        return nextStep(input, true);
+    }
+    
+    private boolean nextStep(String input, boolean check) {
+        for (Element n: (ArrayList<Element>) active.clone()) { //von jedem zustand suchen
+            active.remove(n);
+            if (n instanceof Node) {
+            for (Edge e: ((Node)n).getEdges()) { //jede kante betrachten
+                for (String s: e.getTransitions()) { //jeden übergang der kante
+                    if (s.equals(input)) {
+                        active.add(e);
+                        active.add(e.getTo());
+                        break;
                     }
-                    
                 }
+
             }
-            if (state.isEmpty()) return false;
-            //remove duplicates - i need them during work process
-            HashSet hs = new HashSet();
-            hs.addAll(state);
-            state.clear();
-            state.addAll(hs);
+            }
         }
-        for (Node n: state) {
-            if (n.isFinal()) return true;
+        //if (active.isEmpty()) return false;
+        //remove duplicates - i need them during work process
+        HashSet hs = new HashSet();
+        hs.addAll(active);
+        active.clear();
+        active.addAll(hs);
+        if (check) {
+            //notifyObservers();
+            for (Element n: active) {
+                if ((n instanceof Node)&&(((Node)n).isFinal())) return true;
+            }
         }
         return false;
+    }
+    
+    public boolean accept(String input) {
+        startSim();
+        for (int i = 0; i < input.length()-1; i++) {
+            nextStep(""+input.charAt(i),false);
+        }
+        boolean b = nextStep(""+input.charAt(input.length()-1),true);
+        active.clear();
+        return b;
     }
 }

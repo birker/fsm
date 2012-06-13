@@ -14,12 +14,8 @@ import fsm.Edge;
 import fsm.Fsm;
 import fsm.Node;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -42,6 +38,8 @@ public class Main extends javax.swing.JFrame {
 
     private Fsm fsm = new Fsm();
     private JFrame graphWindow;
+    private JFrame simulationWindow;
+    private Graph g;
     private JFileChooser fs = new JFileChooser();
     
     private void initGraphWindow() {
@@ -49,7 +47,8 @@ public class Main extends javax.swing.JFrame {
         graphWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         graphWindow.setSize(400, 400);
         graphWindow.setLocation(200, 200);
-        Graph g = new Graph(fsm);
+        g = new Graph(fsm);
+        fsm.addObserver(g);
         graphWindow.getContentPane().add(g);
         graphWindow.setVisible(true);
         graphWindow.addWindowListener(new WindowAdapter() {
@@ -60,10 +59,35 @@ public class Main extends javax.swing.JFrame {
         });
     }
     
+    private void initSimulationWindow() {
+        simulationWindow = new JFrame("Simulation");
+        simulationWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        simulationWindow.setLocation(550, 50);
+        Simulation s = new Simulation(fsm);
+        simulationWindow.setSize(s.getPreferredSize());
+        simulationWindow.getContentPane().add(s);
+        simulationWindow.setVisible(true);
+        /*simulationWindow.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent evt) {
+                jCheckBoxMenuItem1.setSelected(false);
+            }
+        });*/
+    }    
+    
+    private void changeFsm(Fsm fsm) {
+        this.fsm = fsm;
+        graphWindow.dispose();
+        initGraphWindow();
+        simulationWindow.dispose();
+        initSimulationWindow();
+    }
+    
     /** Creates new form Main */
     public Main() {
         initComponents();
         initGraphWindow();
+        initSimulationWindow();
         try {
             for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                 mLooknFeel.add(new JMenuItem(info.getName()) {
@@ -104,11 +128,13 @@ public class Main extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jTextField1 = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        jTextField2 = new javax.swing.JTextField();
+        jTextField3 = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
+        jMenuItem8 = new javax.swing.JMenuItem();
         jMenuItem5 = new javax.swing.JMenuItem();
         jMenuItem6 = new javax.swing.JMenuItem();
         jMenuItem4 = new javax.swing.JMenuItem();
@@ -116,18 +142,14 @@ public class Main extends javax.swing.JFrame {
         jMenu2 = new javax.swing.JMenu();
         jCheckBoxMenuItem1 = new javax.swing.JCheckBoxMenuItem();
         mLooknFeel = new javax.swing.JMenu();
+        jMenu4 = new javax.swing.JMenu();
+        jMenuItem7 = new javax.swing.JMenuItem();
+        jCheckBoxMenuItem2 = new javax.swing.JCheckBoxMenuItem();
         jMenu3 = new javax.swing.JMenu();
         jMenuItem2 = new javax.swing.JMenuItem();
         jMenuItem3 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-        jTextField1.setText("01");
-        jTextField1.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                jTextField1KeyPressed(evt);
-            }
-        });
 
         jButton1.setText("Beispielgraph erzeugen");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -136,14 +158,28 @@ public class Main extends javax.swing.JFrame {
             }
         });
 
-        jButton2.setText("Eingabe testen");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        jTextField2.setText("jTextField2");
+        jTextField2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                jTextField2ActionPerformed(evt);
             }
         });
 
+        jTextField3.setEditable(false);
+        jTextField3.setText("jTextField3");
+
+        jLabel1.setText("jLabel1");
+
         jMenu1.setText("Datei");
+
+        jMenuItem8.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem8.setText("neuer Automat");
+        jMenuItem8.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem8ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem8);
 
         jMenuItem5.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
         jMenuItem5.setText("Automat speichern");
@@ -200,6 +236,26 @@ public class Main extends javax.swing.JFrame {
 
         jMenuBar1.add(jMenu2);
 
+        jMenu4.setText("Graph");
+
+        jMenuItem7.setText("Graph ausrichten");
+        jMenuItem7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem7ActionPerformed(evt);
+            }
+        });
+        jMenu4.add(jMenuItem7);
+
+        jCheckBoxMenuItem2.setText("rechtwinklige Kanten");
+        jCheckBoxMenuItem2.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jCheckBoxMenuItem2ItemStateChanged(evt);
+            }
+        });
+        jMenu4.add(jCheckBoxMenuItem2);
+
+        jMenuBar1.add(jMenu4);
+
         jMenu3.setText("Hilfe");
 
         jMenuItem2.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_H, java.awt.event.InputEvent.CTRL_MASK));
@@ -230,21 +286,28 @@ public class Main extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(1, 1, 1)
-                .addComponent(jButton2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton1)
-                .addContainerGap(251, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 204, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap(43, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jButton1)
+                        .addContainerGap(325, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
+                .addComponent(jButton1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2))
+                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -255,12 +318,6 @@ public class Main extends javax.swing.JFrame {
         System.exit(0);
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
-    private void jTextField1KeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField1KeyPressed
-        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-            jButton2ActionPerformed(new ActionEvent(jButton2,ActionEvent.ACTION_PERFORMED,""));//MouseEvent(jButton2,MouseEvent.MOUSE_CLICKED,System.currentTimeMillis(),0,0,0,1,false                    ));
-        }
-    }//GEN-LAST:event_jTextField1KeyPressed
-
     private void jCheckBoxMenuItem1ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItem1ItemStateChanged
         if (jCheckBoxMenuItem1.isSelected()) {
             initGraphWindow();
@@ -269,50 +326,42 @@ public class Main extends javax.swing.JFrame {
         }        
     }//GEN-LAST:event_jCheckBoxMenuItem1ItemStateChanged
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        if (fsm.accept(jTextField1.getText())) {
-                JOptionPane.showMessageDialog(this, "Der Automat akzeptiert die Eingabe \""+jTextField1.getText()+"\".", "Simulation", JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(this, "Der Automat akzeptiert die Eingabe \""+jTextField1.getText()+"\" nicht.", "Simulation", JOptionPane.WARNING_MESSAGE);
-
-            }
-    }//GEN-LAST:event_jButton2ActionPerformed
-
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         Node n = fsm.addState(new Point(200, 100));
         n.setFinal(true);
         n.setInitial(true);
-        n.setLabel("q0");
+        n.setText("q_0");
         Node n2 = fsm.addState(new Point(5, 100));
-        n2.setLabel("q1");
+        n2.setText("q_1");
+        n2.setAutoWidth(true);
         
-        Edge e = fsm.addTransition(n, n2);
-        e.addSupportPoint(new Point(125,90));
-        e.addTransition("0");
+        Edge e = fsm.addTransition(n, n2, false);
+        e.getSupportPoints().add(new Point(125,90));
+        e.getTransitions().add("0");
         
-        e = fsm.addTransition(n2, n);
-        e.addSupportPoint(new Point(25,30));
-        e.addSupportPoint(new Point(320,30));
-        e.addSupportPoint(new Point(320,120));
+        e = fsm.addTransition(n2, n, false);
+        e.getSupportPoints().add(new Point(25,30));
+        e.getSupportPoints().add(new Point(320,30));
+        e.getSupportPoints().add(new Point(320,120));
         e.setPathMode(Edge.CUBIC_BEZIER);
-        e.addTransition("1");
+        e.getTransitions().add("1");
         
-        e = fsm.addTransition(n, n);
-        e.addSupportPoint(new Point(210,160));
-        e.addSupportPoint(new Point(230,160));
-        e.addTransition("1");
+        e = fsm.addTransition(n, n, false);
+        e.getSupportPoints().add(new Point(210,160));
+        e.getSupportPoints().add(new Point(230,160));
+        e.getTransitions().add("1");
         
         n = fsm.addState(new Point(100,220));
-        n.setLabel("o o");
-        e = fsm.addTransition(n, n);
-        e.addSupportPoint(new Point((int)n.getShape().getCenterX(),(int)(n.getShape().getY()+n.getShape().getHeight()-1)));
-        e = fsm.addTransition(n, n);
+        n.setText("o_ o");
+        e = fsm.addTransition(n, n, false);
+        e.getSupportPoints().add(new Point((int)n.getShape().getCenterX(),(int)(n.getShape().getY()+n.getShape().getHeight()-1)));
+        e = fsm.addTransition(n, n, false);
         e.setDegOut(Edge.NORTH - 30);
         e.setDegIn(Edge.NORTH - 30);
-        e = fsm.addTransition(n, n);
+        e = fsm.addTransition(n, n, false);
         e.setDegOut(Edge.NORTH + 30);
         e.setDegIn(Edge.NORTH + 30);
-        graphWindow.repaint();
+        fsm.notifyObs();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
@@ -326,7 +375,7 @@ public class Main extends javax.swing.JFrame {
     private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
         if (fs.showSaveDialog(this)==JFileChooser.APPROVE_OPTION) {
             try {
-                ((Graph)graphWindow.getContentPane().getComponent(0)).saveToPNG(fs.getSelectedFile());
+                g.saveToPNG(fs.getSelectedFile());
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(this, "Konnte die Datei nicht speichern", "Fehler beim Speichern", JOptionPane.ERROR_MESSAGE);
             }
@@ -351,9 +400,7 @@ public class Main extends javax.swing.JFrame {
             try {
                 FileInputStream fin = new FileInputStream(fs.getSelectedFile());
                 ObjectInputStream ois = new ObjectInputStream(fin);
-                fsm = (Fsm) ois.readObject();
-                graphWindow.dispose();
-                initGraphWindow();
+                changeFsm((Fsm) ois.readObject());
                 ois.close();
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(this, "Konnte die Datei nicht öffnen", "Fehler beim Laden", JOptionPane.ERROR_MESSAGE);
@@ -363,6 +410,24 @@ public class Main extends javax.swing.JFrame {
             }
         }
     }//GEN-LAST:event_jMenuItem6ActionPerformed
+
+    private void jTextField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField2ActionPerformed
+        jTextField3.setText(Node.parseString(jTextField2.getText()));
+        jLabel1.setText(Node.parseString(jTextField2.getText()));
+    }//GEN-LAST:event_jTextField2ActionPerformed
+
+    private void jMenuItem7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem7ActionPerformed
+        fsm.alignNodes();
+        fsm.notifyObs();
+    }//GEN-LAST:event_jMenuItem7ActionPerformed
+
+    private void jCheckBoxMenuItem2ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItem2ItemStateChanged
+        Edge.setPerpendicular(jCheckBoxMenuItem2.isSelected());
+    }//GEN-LAST:event_jCheckBoxMenuItem2ItemStateChanged
+
+    private void jMenuItem8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem8ActionPerformed
+        changeFsm(new Fsm());
+    }//GEN-LAST:event_jMenuItem8ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -380,11 +445,13 @@ public class Main extends javax.swing.JFrame {
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem1;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem2;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
+    private javax.swing.JMenu jMenu4;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
@@ -392,7 +459,11 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JMenuItem jMenuItem5;
     private javax.swing.JMenuItem jMenuItem6;
-    private javax.swing.JTextField jTextField1;
+    private javax.swing.JMenuItem jMenuItem7;
+    private javax.swing.JMenuItem jMenuItem8;
+    private javax.swing.JTextField jTextField2;
+    private javax.swing.JTextField jTextField3;
     private javax.swing.JMenu mLooknFeel;
     // End of variables declaration//GEN-END:variables
+
 }
