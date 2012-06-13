@@ -45,6 +45,7 @@ public class Graph extends JPanel implements Observer {
 
     private Fsm fsm;
     private ArrayList<RectangularShape> sp = new ArrayList<RectangularShape>();
+    private Point translate = new Point(0,0);
 
     /** Creates new form Graph */
     public Graph(Fsm fsm) {
@@ -60,7 +61,7 @@ public class Graph extends JPanel implements Observer {
     protected void paintComponent(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
+        g2d.translate(translate.x, translate.y);
         for (Edge element: fsm.getTransitions()) {
             //if (element.getLabel().getParent()==null)
             //add(element.getLabel()); böse idee, er macht damit ein repaint nach dem anderen
@@ -148,9 +149,21 @@ public class Graph extends JPanel implements Observer {
     }
 
     public void saveToPNG(File file) throws IOException {
-        BufferedImage image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
-        print(image.getGraphics());
+        BufferedImage image;
         Rectangle r = getBoundingBox();
+        if (r.getX()<0 || r.getY() < 0 || r.getX()+r.getWidth() > getWidth() || r.getY()+r.getHeight()>getHeight()) {
+            Graph g = new Graph(fsm);
+            if (r.getX()<0 || r.getY() < 0) {
+                g.translate = new Point(-(int)r.getX(),-(int)r.getY());
+                r.setLocation(0,0);
+            }
+            g.setSize((int)(r.getX()+r.getWidth()), (int)(r.getY()+r.getHeight()));
+            image = new BufferedImage(g.getWidth(), g.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            g.print(image.getGraphics());
+        } else {
+            image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+            print(image.getGraphics());        
+        }
         ImageIO.write(image.getSubimage(r.x, r.y, r.width, r.height), "PNG", file);
     }
 

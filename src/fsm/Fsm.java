@@ -39,7 +39,7 @@ public class Fsm  extends Observable implements Serializable{
     private ArrayList<Element> active = new ArrayList<Element>();
 
     public Node addState(Point position) {
-        Node n = new Node(Node.getDefShape(), position);
+        Node n = new Node(Node.getDefShape(), position, "q_"+states.size());
         states.add(n);
         //notifyObservers();
         return n;
@@ -147,7 +147,22 @@ public class Fsm  extends Observable implements Serializable{
             double offy = n0.getShape().getY();
             double facx = Math.round((n.getShape().getX() - offx) / (3*n0.getPreferredWidth())) ;
             double facy = Math.round((n.getShape().getY() - offy) / (3*n0.getShape().getHeight())) ;
-            n.getShape().setFrame(offx+facx*3*n0.getPreferredWidth(),offy+facy*3*n0.getShape().getHeight(),n.getShape().getWidth(),n.getShape().getHeight());
+            double x = offx+facx*3*n0.getPreferredWidth();
+            double y = offy+facy*3*n0.getShape().getHeight();
+            //check if there is already a node;
+            boolean found = true;
+            while (found) {
+                found = false;
+            for (Node n2: getStates()) {
+                if (n==n2) break;
+                if (Math.abs(n2.getShape().getX() - x)<1 && Math.abs(n2.getShape().getY() - y)<1) {
+                    facx++;
+                    x = offx+facx*3*n0.getPreferredWidth();
+                    found = true;
+                }
+            }
+            }
+            n.getShape().setFrame(x,y,n.getShape().getWidth(),n.getShape().getHeight());
         }
         Iterator<Edge> it2 = getTransitions().iterator();
         while (it2.hasNext()) {

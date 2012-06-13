@@ -46,11 +46,12 @@ public class Node implements Serializable, Element{
     
     ////////////////Constructor///////////////////////////////////////////
     
-    public Node(RectangularShape shape, Point pos) {
+    public Node(RectangularShape shape, Point pos, String name) {
         this.shape = (RectangularShape) shape.clone();
         this.shape.setFrame(pos.x, pos.y, shape.getWidth(), shape.getHeight());
         preferredWidth = (int)shape.getWidth();
         label.setHorizontalAlignment(SwingConstants.CENTER);
+        setText(name);
     }
 
     ////////////////Getter and Setter for static default values////////////////
