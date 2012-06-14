@@ -110,6 +110,11 @@ public class Simulation extends javax.swing.JPanel {
         });
 
         jCheckBox1.setText("auto");
+        jCheckBox1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBox1ActionPerformed(evt);
+            }
+        });
 
         jSpinner1.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(5), Integer.valueOf(1), null, Integer.valueOf(1)));
 
@@ -275,6 +280,24 @@ public class Simulation extends javax.swing.JPanel {
 
     private Timer timer;
     private TimerTask task;
+    
+    private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed
+        if (jCheckBox1.isSelected()) {
+            timer = new Timer();
+            task = new TimerTask(){
+
+                @Override
+                public void run() {
+                    jButton3ActionPerformed(new ActionEvent(jCheckBox1, ActionEvent.ACTION_PERFORMED, ""));
+                }
+                
+            };
+            timer.schedule(task, (Integer)jSpinner1.getValue()*1000, (Integer)jSpinner1.getValue()*1000);
+        } else {
+            timer.cancel();
+        }
+    }//GEN-LAST:event_jCheckBox1ActionPerformed
+
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;

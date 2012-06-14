@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project name="Fsm" default="dist" basedir=".">
     <description>
         simple example build file
@@ -15,7 +16,7 @@
   </target>
 
   <target name="compile" depends="init" description="compile the source " >
-    <javac srcdir="${src}" destdir="${build}" includeantruntime="false" debug="true"/>
+    <javac srcdir="${src}" destdir="${build}" encoding="UTF-8" includeantruntime="false" debug="true"/>
   </target>
 
   <target name="dist" depends="compile" description="generate the distribution" >

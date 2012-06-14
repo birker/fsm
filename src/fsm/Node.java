@@ -6,7 +6,6 @@ package fsm;
 
 import java.awt.Color;
 import java.awt.Point;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.RectangularShape;
 import java.awt.geom.RoundRectangle2D;
 import java.io.Serializable;

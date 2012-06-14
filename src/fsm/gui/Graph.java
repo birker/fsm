@@ -64,7 +64,7 @@ public class Graph extends JPanel implements Observer {
         g2d.translate(translate.x, translate.y);
         for (Edge element: fsm.getTransitions()) {
             //if (element.getLabel().getParent()==null)
-            //add(element.getLabel()); böse idee, er macht damit ein repaint nach dem anderen
+            //add(element.getLabel()); bÃ¶se idee, er macht damit ein repaint nach dem anderen
             if (fsm.getActive().contains(element)) {
                 g2d.setColor(Color.cyan);
                 element.getLabel().setForeground(Color.cyan);
@@ -134,7 +134,7 @@ public class Graph extends JPanel implements Observer {
         Point min = new Point(getWidth(),getHeight());
         Point max = new Point(0,0);
         for (Node n: fsm.getStates()) {
-            min.setLocation(Math.min(min.getX(), n.getShape().getX()), Math.min(min.getY(), n.getShape().getY()));
+            min.setLocation(Math.min(min.getX()-(n.isInitial()?20:0), n.getShape().getX()), Math.min(min.getY(), n.getShape().getY()));
             max.setLocation(Math.max(max.getX(), n.getShape().getX()+n.getShape().getWidth()), Math.max(max.getY(), n.getShape().getY()+n.getShape().getHeight()));            
         }
         for (Edge e: fsm.getTransitions()) {

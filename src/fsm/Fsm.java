@@ -39,7 +39,7 @@ public class Fsm  extends Observable implements Serializable{
     private ArrayList<Element> active = new ArrayList<Element>();
 
     public Node addState(Point position) {
-        Node n = new Node(Node.getDefShape(), position, "q_"+states.size());
+        Node n = new Node(Node.getDefShape(), position, "q_{"+states.size()+"}");
         states.add(n);
         //notifyObservers();
         return n;
@@ -205,7 +205,7 @@ public class Fsm  extends Observable implements Serializable{
             }
             }
         }
-        //if (active.isEmpty()) return false;
+        if (active.isEmpty()) return false;
         //remove duplicates - i need them during work process
         HashSet hs = new HashSet();
         hs.addAll(active);
