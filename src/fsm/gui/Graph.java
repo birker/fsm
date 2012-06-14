@@ -63,20 +63,22 @@ public class Graph extends JPanel implements Observer {
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.translate(translate.x, translate.y);
         for (Edge element: fsm.getTransitions()) {
+            if (element.getPath(false)==null) element.rebuildPath();
             //if (element.getLabel().getParent()==null)
             //add(element.getLabel()); bÃ¶se idee, er macht damit ein repaint nach dem anderen
             if (fsm.getActive().contains(element)) {
                 g2d.setColor(Color.cyan);
                 element.getLabel().setForeground(Color.cyan);
-            }
-            else if (fsm.getChoice() == element) {
+            } else if (fsm.getActiveEps().contains(element)) {
+                g2d.setColor(Color.magenta);
+                element.getLabel().setForeground(Color.magenta);
+            } else if (fsm.getChoice() == element) {
                 g2d.setColor(Color.red);
                 element.getLabel().setForeground(Color.red);
             } else {
                 g2d.setColor(element.getColor());
                 element.getLabel().setForeground(element.getColor());
             }
-            if (element.getPath(false)==null) element.rebuildPath();
             g2d.translate(element.getLabel().getX(), element.getLabel().getY());
             element.getLabel().paint(g);
             g2d.translate(-element.getLabel().getX(), -element.getLabel().getY());
@@ -88,6 +90,9 @@ public class Graph extends JPanel implements Observer {
             if (fsm.getActive().contains(element)) {
                 g2d.setColor(Color.CYAN);
                 g2d.fill(element.getShape());
+            } else if (fsm.getActiveEps().contains(element)) {
+                g2d.setColor(Color.MAGENTA);
+                g2d.fill(element.getShape());                
             } else if (element.isFillNode()) {
               g2d.setColor(element.getFillColor());
               g2d.fill(element.getShape());

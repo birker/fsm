@@ -37,6 +37,7 @@ public class Fsm  extends Observable implements Serializable{
     //Simulation etc.
     private Element choice;
     private ArrayList<Element> active = new ArrayList<Element>();
+    private ArrayList<Element> activeEps = new ArrayList<Element>();
 
     public Node addState(Point position) {
         Node n = new Node(Node.getDefShape(), position, "q_{"+states.size()+"}");
@@ -79,10 +80,13 @@ public class Fsm  extends Observable implements Serializable{
     public ArrayList<Edge> getTransitions() {
         return transitions;
     }
- 
-    
+
     public ArrayList<Element> getActive() {
         return active;
+    }
+    
+    public ArrayList<Element> getActiveEps() {
+        return activeEps;
     }
 
     public String getAlphabet() {
@@ -179,8 +183,12 @@ public class Fsm  extends Observable implements Serializable{
     
     public void startSim() {
         active.clear();
+        activeEps.clear();
         for (Node n: getStates()) {
-            if (n.isInitial()) active.add(n);
+            if (n.isInitial()) {
+                active.add(n);
+                addSpontaniousNodes(n);
+            }
         }
         //notifyObservers();
     }
@@ -190,43 +198,83 @@ public class Fsm  extends Observable implements Serializable{
     }
     
     private boolean nextStep(String input, boolean check) {
+        active.addAll(activeEps);
+        activeEps.clear();
         for (Element n: (ArrayList<Element>) active.clone()) { //von jedem zustand suchen
             active.remove(n);
             if (n instanceof Node) {
-            for (Edge e: ((Node)n).getEdges()) { //jede kante betrachten
-                for (String s: e.getTransitions()) { //jeden übergang der kante
-                    if (s.equals(input)) {
+                boolean found = false;
+                ArrayList<Edge> epot = new ArrayList();
+                for (Edge e: ((Node)n).getEdges()) { //jede kante betrachten
+                    for (String s: e.getTransitions()) { //jeden übergang der kante
+                        if (s.equals(input)||s.equals(""+anySymbol)) {
+                            active.add(e);
+                            active.add(e.getTo());
+                            addSpontaniousNodes(e.getTo());
+                            found = true;
+                            break;
+                        } else if (!found && s.equals(""+elseSymbol)) {
+                            epot.add(e);
+                        }
+                    }
+
+                }
+                if (!found && !epot.isEmpty()) {
+                    for (Edge e: epot) {
                         active.add(e);
                         active.add(e.getTo());
-                        break;
-                    }
+                        addSpontaniousNodes(e.getTo());  
+                        
+                    }                  
                 }
-
-            }
             }
         }
         if (active.isEmpty()) return false;
+        //spontanious
+        for (Element n: (ArrayList<Element>) active.clone()) {
+            if (n instanceof Node) {
+                
+            }
+        }
         //remove duplicates - i need them during work process
         HashSet hs = new HashSet();
         hs.addAll(active);
         active.clear();
         active.addAll(hs);
+        activeEps.removeAll(active);
         if (check) {
             //notifyObservers();
             for (Element n: active) {
                 if ((n instanceof Node)&&(((Node)n).isFinal())) return true;
             }
-        }
+            for (Element n: activeEps) {
+                if ((n instanceof Node)&&(((Node)n).isFinal())) return true;
+            }
+        } else return true;
         return false;
     }
     
     public boolean accept(String input) {
         startSim();
         for (int i = 0; i < input.length()-1; i++) {
-            nextStep(""+input.charAt(i),false);
+            if (!nextStep(""+input.charAt(i),false)) return false;
         }
         boolean b = nextStep(""+input.charAt(input.length()-1),true);
         active.clear();
         return b;
+    }
+
+    private void addSpontaniousNodes(Node to) {
+        for (Edge e: to.getEdges()) {
+            for (String s: e.getTransitions()) {
+                if (s.equals(""+epsSymbol)) {
+                    activeEps.add(e);
+                    if (!active.contains(e.getTo()) && !activeEps.contains(e.getTo())) {
+                        activeEps.add(e.getTo());
+                        addSpontaniousNodes(e.getTo());
+                    }
+                }
+            }
+        }
     }
 }

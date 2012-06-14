@@ -16,6 +16,8 @@ import fsm.Fsm;
 import fsm.Node;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.DefaultListModel;
@@ -220,6 +222,7 @@ public class Simulation extends javax.swing.JPanel {
         boolean b = fsm.nextStep(""+input.charAt(step));
         step++;
         jLabel1.setText(input.substring(step));
+        try {
         ArrayList<Node> calcNodes2 = (ArrayList)calcNodes.clone();
         ArrayList<Node> calcNodes3 = (ArrayList)calcNodes.clone();
         for (Element e: fsm.getActive()) {
@@ -228,6 +231,7 @@ public class Simulation extends javax.swing.JPanel {
                 if (i == -1) {
                     i = calcNodes3.indexOf(((Edge)e).getFrom());
                     calcNodes.add(((Edge)e).getTo());
+                    if (((String)lm.get(i)).lastIndexOf("\u22a6")!=-1)
                     lm.insertElementAt(((String)lm.get(i)).substring(0, ((String)lm.get(i)).lastIndexOf("\u22a6"))
                             +"\u22a6 \u3008"+((Edge)e).getTo().getText()+", "
                             +(jLabel1.getText().length()==0?"\u03B5":jLabel1.getText())
@@ -243,6 +247,9 @@ public class Simulation extends javax.swing.JPanel {
         }
         for (int i = 0; i < calcNodes2.size(); i++ ) {
             if (calcNodes2.get(i)!=null) lm.set(i, lm.get(i)+" \u22a6 \u22a5");
+        }} catch (Exception e) {
+            System.err.println(e.getMessage());
+            
         }
         fsm.notifyObs();
         if (input.length()==step) {
