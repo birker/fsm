@@ -13,11 +13,9 @@ package fsm.gui;
 import fsm.Edge;
 import fsm.Element;
 import fsm.Fsm;
-import fsm.Node;
+import fsm.Vertex;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.DefaultListModel;
@@ -27,13 +25,13 @@ import javax.swing.JOptionPane;
  *
  * @author Konnarr
  */
-public class Simulation extends javax.swing.JPanel {
+public class SimulationPanel extends javax.swing.JPanel {
 
     private Fsm fsm;
     private DefaultListModel lm = new DefaultListModel();
     
     /** Creates new form Simulation */
-    public Simulation(Fsm fsm) {
+    public SimulationPanel(Fsm fsm) {
         this.fsm = fsm;
         initComponents();
     }
@@ -59,6 +57,7 @@ public class Simulation extends javax.swing.JPanel {
         jSpinner1 = new javax.swing.JSpinner();
         jScrollPane2 = new javax.swing.JScrollPane();
         jList2 = new javax.swing.JList();
+        jCheckBox2 = new javax.swing.JCheckBox();
 
         jTextField1.setText("01");
         jTextField1.addActionListener(new java.awt.event.ActionListener() {
@@ -123,6 +122,14 @@ public class Simulation extends javax.swing.JPanel {
         jList2.setModel(lm);
         jScrollPane2.setViewportView(jList2);
 
+        jCheckBox2.setSelected(true);
+        jCheckBox2.setText("Berechnung");
+        jCheckBox2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBox2ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -130,7 +137,7 @@ public class Simulation extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 626, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 624, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(layout.createSequentialGroup()
@@ -138,13 +145,15 @@ public class Simulation extends javax.swing.JPanel {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButton1))
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jButton2)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jButton2)
+                                    .addComponent(jCheckBox2))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createSequentialGroup()
                                         .addComponent(jCheckBox1)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jSpinner1, javax.swing.GroupLayout.DEFAULT_SIZE, 61, Short.MAX_VALUE))
+                                        .addComponent(jSpinner1))
                                     .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -177,9 +186,10 @@ public class Simulation extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jCheckBox1)
-                    .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 6, Short.MAX_VALUE)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jCheckBox2))
+                .addGap(6, 6, 6)
+                .addComponent(jScrollPane2)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -195,20 +205,38 @@ public class Simulation extends javax.swing.JPanel {
 
     private String input = "";
     private int step;
-    private ArrayList<Node> calcNodes = new ArrayList();
+    private ArrayList<Vertex> calcNodes = new ArrayList();
     
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         fsm.startSim();
         input = jTextField1.getText();
         step = 0;
         jLabel1.setText(input);
+        if (jCheckBox2.isSelected()) {
         lm.clear();
         calcNodes.clear();
         for (Element e: fsm.getActive()) {
-            if (e instanceof Node) {
-                lm.addElement(/*"\u27E8"*/"\u3008"+((Node)e).getText()+", "+input+/*"\u27e9 "*/"\u3009");
-                calcNodes.add((Node)e);
+            if (e instanceof Vertex) {
+                lm.addElement("\u3008"+((Vertex)e).getText()+", "+input+/*"\u27e9 "*/"\u3009");
+                calcNodes.add((Vertex)e);
             }
+        }
+        for (Element element: fsm.getActiveEps()) {
+            if (element instanceof Edge) {
+                Edge e = (Edge) element;
+                for (int i = 0; i < calcNodes.size(); i++) {
+                    Vertex n = calcNodes.get(i);
+                    if (n == e.getFrom()) {
+                            calcNodes.add(e.getTo());
+                            lm.addElement((((String)lm.get(i)).replace(" \u2713", "").replace(" \u2717", ""))
+                                    + " \u22a6 \u3008"+e.getTo().getText()+", "
+                                    +(jLabel1.getText().length()==0?"\u03B5":jLabel1.getText()) + "\u3009"
+                                    +(jLabel1.getText().length()==0?(e.getTo().isFinal()?" \u2713":" \u2717"):""));
+                        
+                    }
+                }
+            }
+        }
         }
         fsm.notifyObs();
     }//GEN-LAST:event_jButton2ActionPerformed
@@ -219,37 +247,63 @@ public class Simulation extends javax.swing.JPanel {
                 jButton2ActionPerformed(evt);
             } else return;
         }
-        boolean b = fsm.nextStep(""+input.charAt(step));
-        step++;
-        jLabel1.setText(input.substring(step));
-        try {
-        ArrayList<Node> calcNodes2 = (ArrayList)calcNodes.clone();
-        ArrayList<Node> calcNodes3 = (ArrayList)calcNodes.clone();
-        for (Element e: fsm.getActive()) {
-            if (e instanceof Edge) {
-                int i = calcNodes2.indexOf(((Edge)e).getFrom());
-                if (i == -1) {
-                    i = calcNodes3.indexOf(((Edge)e).getFrom());
-                    calcNodes.add(((Edge)e).getTo());
-                    if (((String)lm.get(i)).lastIndexOf("\u22a6")!=-1)
-                    lm.insertElementAt(((String)lm.get(i)).substring(0, ((String)lm.get(i)).lastIndexOf("\u22a6"))
-                            +"\u22a6 \u3008"+((Edge)e).getTo().getText()+", "
-                            +(jLabel1.getText().length()==0?"\u03B5":jLabel1.getText())
-                            +"\u3009"+(jLabel1.getText().length()==0?(((Edge)e).getTo().isFinal()?" \u2713":" \u2717"):""), i+1);
-                } else {
-                    calcNodes.set(i, ((Edge)e).getTo());
-                    calcNodes2.set(i, null);
-                    lm.set(i, lm.get(i) +" \u22a6 \u3008"+((Edge)e).getTo().getText()+", "
-                            +(jLabel1.getText().length()==0?"\u03B5":jLabel1.getText())
-                            +"\u3009"+(jLabel1.getText().length()==0?(((Edge)e).getTo().isFinal()?" \u2713":" \u2717"):""));
+        boolean b = fsm.nextStep(jLabel1.getText());
+        //step++;
+        //TODO: we can't handle varying blocksize!!!
+        //there is serious trouble, because different calculations can be at different letters.
+        step += Math.min((fsm.getBlocksize()==0?/*s.length()*/1:fsm.getBlocksize()), jLabel1.getText().length());
+        /*if (input.length()<step) jLabel1.setText("");
+        else */jLabel1.setText(input.substring(step));
+        //berechnung
+        if (jCheckBox2.isSelected()) {
+        boolean[] processed = new boolean[calcNodes.size()];
+        ArrayList<Vertex> origNodes = (ArrayList<Vertex>)calcNodes.clone();
+        for (Element element: fsm.getActive()) {
+            if (element instanceof Edge) {
+                Edge e = (Edge) element;
+                for (int i = 0; i < origNodes.size();i++) {
+                    Vertex n = origNodes.get(i);
+                    if (n == e.getFrom()) {
+                        if (processed[i]==true) { //copy
+                            calcNodes.add(e.getTo());
+                            lm.addElement(((String)lm.get(i)).substring(0, ((String)lm.get(i)).lastIndexOf("\u22a6"))
+                                    + " \u22a6 \u3008"+e.getTo().getText()+", "
+                                    +(jLabel1.getText().length()==0?"\u03B5":jLabel1.getText()) + "\u3009"
+                                    +(jLabel1.getText().length()==0?(e.getTo().isFinal()?" \u2713":" \u2717"):""));
+                        } else {
+                            calcNodes.set(i, e.getTo());
+                            processed[i] = true;
+                            lm.set(i, lm.get(i) + " \u22a6 \u3008"+e.getTo().getText()+", "
+                                    +(jLabel1.getText().length()==0?"\u03B5":jLabel1.getText()) + "\u3009"
+                                    +(jLabel1.getText().length()==0?(e.getTo().isFinal()?" \u2713":" \u2717"):""));
+                        }
+                    }
                 }
             }
         }
-        for (int i = 0; i < calcNodes2.size(); i++ ) {
-            if (calcNodes2.get(i)!=null) lm.set(i, lm.get(i)+" \u22a6 \u22a5");
-        }} catch (Exception e) {
-            System.err.println(e.getMessage());
-            
+        for (int i = 0; i < processed.length; i++) {
+            if (processed[i] == false && calcNodes.get(i)!=null) {
+                calcNodes.set(i, null);
+                lm.set(i, lm.get(i) + " \u22a6 \u22a5 \u2717");
+            }
+        }
+        for (Element element: fsm.getActiveEps()) {
+            if (element instanceof Edge) {
+                Edge e = (Edge) element;
+                for (int i = 0; i < calcNodes.size(); i++) {
+                    Vertex n = calcNodes.get(i);
+                    if (n == e.getFrom()) {
+                            if (n == e.getTo()) continue;
+                            calcNodes.add(e.getTo());
+                            lm.addElement((((String)lm.get(i)).replace(" \u2713", "").replace(" \u2717", "")) //alte berechnung ohne haken/kreuz
+                                    + " \u22a6 \u3008"+e.getTo().getText()+", " //neuer schritt knoten
+                                    +(jLabel1.getText().length()==0?"\u03B5":jLabel1.getText()) + "\u3009" //rest text bzw. epsilon
+                                    +(jLabel1.getText().length()==0?(e.getTo().isFinal()?" \u2713":" \u2717"):"")); //haken/kreuz für akzeptanz
+                        
+                    }
+                }
+            }
+        }
         }
         fsm.notifyObs();
         if (input.length()==step) {
@@ -305,6 +359,10 @@ public class Simulation extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jCheckBox1ActionPerformed
 
+    private void jCheckBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox2ActionPerformed
+        jScrollPane2.setVisible(jCheckBox2.isSelected());
+    }//GEN-LAST:event_jCheckBox2ActionPerformed
+
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
@@ -314,6 +372,7 @@ public class Simulation extends javax.swing.JPanel {
     private javax.swing.JButton jButton5;
     private javax.swing.JButton jButton6;
     private javax.swing.JCheckBox jCheckBox1;
+    private javax.swing.JCheckBox jCheckBox2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JList jList2;
     private javax.swing.JScrollPane jScrollPane2;

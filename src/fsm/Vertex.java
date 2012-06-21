@@ -18,7 +18,7 @@ import javax.swing.SwingConstants;
  *
  * @author Konnarr
  */
-public class Node implements Serializable, Element{
+public class Vertex implements Serializable, Element{
     private static final long serialVersionUID = 2345541351034924475L;
     
     private static Color defColor = Color.BLACK;
@@ -45,7 +45,7 @@ public class Node implements Serializable, Element{
     
     ////////////////Constructor///////////////////////////////////////////
     
-    public Node(RectangularShape shape, Point pos, String name) {
+    public Vertex(RectangularShape shape, Point pos, String name) {
         this.shape = (RectangularShape) shape.clone();
         this.shape.setFrame(pos.x, pos.y, shape.getWidth(), shape.getHeight());
         preferredWidth = (int)shape.getWidth();
@@ -60,7 +60,7 @@ public class Node implements Serializable, Element{
     }
 
     public static void setDefAutoWidth(boolean defAutoWidth) {
-        Node.defAutoWidth = defAutoWidth;
+        Vertex.defAutoWidth = defAutoWidth;
     }
 
     public static Color getDefColor() {
@@ -68,7 +68,7 @@ public class Node implements Serializable, Element{
     }
 
     public static void setDefColor(Color defColor) {
-        Node.defColor = defColor;
+        Vertex.defColor = defColor;
     }
 
     public static Color getDefFillColor() {
@@ -76,7 +76,7 @@ public class Node implements Serializable, Element{
     }
 
     public static void setDefFillColor(Color defFillColor) {
-        Node.defFillColor = defFillColor;
+        Vertex.defFillColor = defFillColor;
     }
 
     public static boolean isDefFillNode() {
@@ -84,7 +84,7 @@ public class Node implements Serializable, Element{
     }
 
     public static void setDefFillNode(boolean defFillNode) {
-        Node.defFillNode = defFillNode;
+        Vertex.defFillNode = defFillNode;
     }
 
     public static RectangularShape getDefShape() {
@@ -92,7 +92,7 @@ public class Node implements Serializable, Element{
     }
 
     public static void setDefShape(RectangularShape defShape) {
-        Node.defShape = defShape;
+        Vertex.defShape = defShape;
     }
     
     //////////////////Getter and Setter for local values///////////////////////
@@ -131,7 +131,7 @@ public class Node implements Serializable, Element{
     }
     
     public void setDefaultShape(Point pos) {
-        shape = (RectangularShape) Node.defShape.clone();
+        shape = (RectangularShape) Vertex.defShape.clone();
         shape.setFrame(pos.x, pos.y, shape.getWidth(), shape.getHeight());
         preferredWidth = (int)shape.getWidth();
         updateLabel();
@@ -145,7 +145,7 @@ public class Node implements Serializable, Element{
     }
     
     public Color getColor() {
-        if (inherit) return Node.defColor;
+        if (inherit) return Vertex.defColor;
         else return color;
     }
 
@@ -155,7 +155,7 @@ public class Node implements Serializable, Element{
     }
 
     public Color getFillColor() {
-        if (inherit) return Node.defFillColor;
+        if (inherit) return Vertex.defFillColor;
         else return fillColor;
     }
 
@@ -165,7 +165,7 @@ public class Node implements Serializable, Element{
     }
 
     public boolean isFillNode() {
-        if (inherit) return Node.defFillNode;
+        if (inherit) return Vertex.defFillNode;
         else return fillNode;
     }
 
@@ -175,7 +175,7 @@ public class Node implements Serializable, Element{
     }
     
     public boolean isAutoWidth() {
-        if (inherit) return Node.defAutoWidth;
+        if (inherit) return Vertex.defAutoWidth;
         else return autoWidth;
     }
 

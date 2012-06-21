@@ -21,38 +21,45 @@ import javax.swing.JLabel;
 public class Edge implements Serializable, Element {
     private static final long serialVersionUID = 2345541351034924475L;    
 
-    public static final int LINE = 0;
+    /*public static final int LINE = 0;
     public static final int QUADRATIC_BEZIER = 1;
-    public static final int CUBIC_BEZIER =2;
-    public static final int AUTOMATIC = -1;
-    public static final int NORTH = 270;
-    public static final int WEST = 0;
-    public static final int SOUTH = 90;
-    public static final int EAST = 180;
+    public static final int CUBIC_BEZIER =2;*/
     
-    private static int defPathMode = QUADRATIC_BEZIER;
+    public static final double AUTOMATIC = Double.NaN;
+    public static final double NORTH = 270;
+    public static final double WEST = 0;
+    public static final double SOUTH = 90;
+    public static final double EAST = 180;
+    
+    private static PathMode defPathMode = PathMode.QUADRATIC_BEZIER;
     private static Color defColor = Color.BLACK;
+    private static boolean defLabelRot = true;
     private static boolean perpendicular = false;
     
-    private Node from;
-    private Node to;
-    private ArrayList<String> trans = new ArrayList<String>();
+    private Vertex from;
+    private Vertex to;
     private JLabel label = new JLabel();
+    private double labelRotDeg = 0;
+    private boolean labelRot = true;
     
+    private ArrayList<String> trans = new ArrayList<String>();
+    private double weight;
+    
+    protected boolean directed;
     //graphical properties
-    private int degIn = AUTOMATIC;
-    private int degOut = AUTOMATIC;
+    private double degIn = AUTOMATIC;
+    private double degOut = AUTOMATIC;
     private ArrayList<Point> supportPoints = new ArrayList<Point>();
     private Path2D path;
     private Path2D pathOpen;
     private boolean inherit = true;
-    private int pathMode = QUADRATIC_BEZIER;
+    private PathMode pathMode = PathMode.QUADRATIC_BEZIER;
     private Color color = defColor;
     
     //index, for constructing automaton piece by pieve.
     private int index;
     
-    public Edge(Node from, Node to, boolean autoSP) {
+    public Edge(Vertex from, Vertex to, boolean autoSP) {
         this.from = from;
         this.to = to;
         if (autoSP) {
@@ -96,14 +103,23 @@ public class Edge implements Serializable, Element {
         Edge.defColor = defColor;
     }
 
-    public static int getDefPathMode() {
+    public static PathMode getDefPathMode() {
         return defPathMode;
     }
 
-    public static void setDefPathMode(int defPathMode) {
-        if (defPathMode<0 || defPathMode > 2) throw new IllegalArgumentException("pathMode must be of 0, 1 or 2");
+    public static void setDefPathMode(PathMode defPathMode) {
         Edge.defPathMode = defPathMode;
     }
+
+    public static boolean isDefLabelRot() {
+        return defLabelRot;
+    }
+
+    public static void setDefLabelRot(boolean defLabelRot) {
+        Edge.defLabelRot = defLabelRot;
+    }
+    
+    ////////////////////////////Getter and Setter///////////////////////////////
     
     //sollte readonly sein. nur zum malen;
     public Path2D getPath(boolean closed) {
@@ -111,24 +127,22 @@ public class Edge implements Serializable, Element {
         else return pathOpen;
     }
     
-    public Node getFrom() {
+    public Vertex getFrom() {
         return from;
     }
     
-    public void setFrom(Node node) {
+    public void setFrom(Vertex node) {
         from.getEdges().remove(this);
         from = node;
         from.getEdges().add(this);
-        //rebuildPath();
     }
     
-    public Node getTo() {
+    public Vertex getTo() {
         return to;
     }
     
-    public void setTo(Node node) {
+    public void setTo(Vertex node) {
         to = node;
-        //rebuildPath();
     }
     
     //zu public
@@ -140,40 +154,63 @@ public class Edge implements Serializable, Element {
     public ArrayList<String> getTransitions() {
         return trans;
     }//*/
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public void setWeight(double weight) {
+        this.weight = weight;
+    }
     
-    private void updateLabel() {
-        label.setText("");
-        for (String s : trans) {
-            label.setText(label.getText()+(label.getText().equals("")?"":",")+s);
+    public void setText(boolean weight) {
+        if (weight) {
+            setText(""+this.weight);
+        } else {
+            String s = "";
+            for (String t: trans) {
+                s += (s.equals("")?"":", ")+t;
+            }
+            setText(s);
         }
+    }
+    
+    public void setText(String text) {
+        label.setText(text);
         label.setSize(label.getPreferredSize());
     }
     
+    public String getText() {
+        return label.getText();
+    }
+   
     //sollte readonly sein. nur zu lesen zum malen.
     public JLabel getLabel() {
-        //TODO update label here?
-        updateLabel();
         return label;
     }
 
-    public int getDegIn() {
+    public boolean isDegInAutomatic() {
+        return Double.isNaN(degIn);
+    }
+    
+    public double getDegIn() {
         return degIn;
     }
 
-    public void setDegIn(int degIn) {
-        if (degIn<-1 || degIn>359) throw new IllegalArgumentException("0 to 359 or -1");
+    public void setDegIn(double degIn) {
         this.degIn = degIn;
-        //rebuildPath();
     }
 
-    public int getDegOut() {
+    public double getDegOut() {
         return degOut;
     }
+    
+    public boolean isDegOutAutomatic() {
+        return Double.isNaN(degOut);
+    }
 
-    public void setDegOut(int degOut) {
-        if (degOut<-1 || degOut>359) throw new IllegalArgumentException("0 to 359 or -1");
+    public void setDegOut(double degOut) {
         this.degOut = degOut;
-        //rebuildPath();
     }
     
     public boolean isInherit() {
@@ -202,16 +239,32 @@ public class Edge implements Serializable, Element {
         this.index = index;
     }
 
-    public int getPathMode() {
+    public PathMode getPathMode() {
         if (inherit) return defPathMode;
         return pathMode;
     }
 
-    public void setPathMode(int pathMode) {
-        if (pathMode<0 || pathMode>2) throw new IllegalArgumentException("pathMode must be 0, 1 ot 2");
+    public void setPathMode(PathMode pathMode) {
         this.pathMode = pathMode;
         inherit = false;
-        //rebuildPath();
+    }
+
+    public double getLabelRotDeg() {
+        return labelRotDeg;
+    }
+
+    public void setLabelRotDeg(double labelrot) {
+        this.labelRotDeg = labelrot;
+    }
+
+    public boolean isLabelRot() {
+        if (inherit && from != to) return defLabelRot;
+        return labelRot;
+    }
+
+    public void setLabelRot(boolean labelRot) {
+        this.labelRot = labelRot;
+        inherit = false;
     }
     
     public boolean hit(Point2D p, int distance) {
@@ -253,12 +306,12 @@ public class Edge implements Serializable, Element {
         ListIterator<Point> itr = supportPoints.listIterator();
         Point2D element;
         //starting point
-        if (degOut != AUTOMATIC) element = new Point2D.Double(from.getShape().getCenterX()+Math.cos(degOut*Math.PI/180),from.getShape().getCenterY()+Math.sin(degOut*Math.PI/180));
+        if (!isDegOutAutomatic()) element = new Point2D.Double(from.getShape().getCenterX()+Math.cos(degOut*Math.PI/180),from.getShape().getCenterY()+Math.sin(degOut*Math.PI/180));
         else if (!supportPoints.isEmpty()) element = supportPoints.get(0);
         else element = new Point2D.Double(to.getShape().getCenterX(),to.getShape().getCenterY()+0.1);
         Point2D start = getIntersectionPoint(element, from.getShape());
         //finish point
-        if (degIn != AUTOMATIC) element = new Point2D.Double(to.getShape().getCenterX()+Math.cos(degIn*Math.PI/180),to.getShape().getCenterY()+Math.sin(degIn*Math.PI/180));
+        if (!isDegInAutomatic()) element = new Point2D.Double(to.getShape().getCenterX()+Math.cos(degIn*Math.PI/180),to.getShape().getCenterY()+Math.sin(degIn*Math.PI/180));
         else if (!supportPoints.isEmpty()) element = supportPoints.get(supportPoints.size()-1);
         else element = new Point2D.Double(from.getShape().getCenterX(),from.getShape().getCenterY());
         Point2D finish = getIntersectionPoint(element, to.getShape());
@@ -267,36 +320,38 @@ public class Edge implements Serializable, Element {
         element = start;
         path.moveTo(element.getX(), element.getY());
         if (!supportPoints.isEmpty()) {
-            if (pathMode==LINE) {
+            if (pathMode.equals(PathMode.LINE)) {
                 while (itr.hasNext()) {
                     element = itr.next();
                     path.lineTo(element.getX(), element.getY());    
                 }
-            } else if (pathMode == QUADRATIC_BEZIER || pathMode == CUBIC_BEZIER) {
+            } else if (pathMode.equals(PathMode.QUADRATIC_BEZIER) || pathMode.equals(PathMode.CUBIC_BEZIER)) {
                 element = itr.next();
                 Point2D h = new Point2D.Double((path.getCurrentPoint().getX()+element.getX())/2,(path.getCurrentPoint().getY()+element.getY())/2);
                 path.lineTo(h.getX(), h.getY());
                 while (itr.hasNext()) {
                     Point2D b = itr.next();
                     h.setLocation((b.getX()+element.getX())/2,(b.getY()+element.getY())/2);
-                    if (pathMode == QUADRATIC_BEZIER) path.quadTo(element.getX(), element.getY(), h.getX(), h.getY());
+                    if (pathMode.equals(PathMode.QUADRATIC_BEZIER)) path.quadTo(element.getX(), element.getY(), h.getX(), h.getY());
                     else path.curveTo(element.getX(), element.getY(), element.getX(), element.getY(), h.getX(), h.getY());
                     element = b;
                 }
                 h.setLocation((finish.getX()+element.getX())/2,(finish.getY()+element.getY())/2);
-                if (pathMode == QUADRATIC_BEZIER) path.quadTo(element.getX(), element.getY(), h.getX(), h.getY());
+                if (pathMode.equals(PathMode.QUADRATIC_BEZIER)) path.quadTo(element.getX(), element.getY(), h.getX(), h.getY());
                 else path.curveTo(element.getX(), element.getY(), element.getX(), element.getY(), h.getX(), h.getY());
             }
         }
         path.lineTo(finish.getX(), finish.getY());
         
         //arrow
+        if (directed) {
         if (Math.abs(finish.distance(element))<1E-10) {
             Point2D t = new Point2D.Double(finish.getX()-from.getShape().getCenterX(),finish.getY()-from.getShape().getCenterY());
             t.setLocation(finish.getX()+2*t.getX(), finish.getY()+2*t.getY());
             drawArrow(path,finish,t,25,10);
         }   
         else drawArrow(path,finish,element,25,10);
+        }
         
         pathOpen = (Path2D) path.clone();
         
@@ -305,41 +360,74 @@ public class Edge implements Serializable, Element {
          * and then intersect. This has to be done manually all the way back, 
          * because he would just lineTo the starting point, if done automatically.*/
         if (!supportPoints.isEmpty()) {
-            if (pathMode==LINE) {
+            if (pathMode.equals(PathMode.LINE)) {
                 while (itr.hasPrevious()) {
                     element = itr.previous();
                     path.lineTo(element.getX(), element.getY());    
                 }
-            } else if (pathMode == QUADRATIC_BEZIER || pathMode == CUBIC_BEZIER) {
+            } else if (pathMode.equals(PathMode.QUADRATIC_BEZIER) || pathMode.equals(PathMode.CUBIC_BEZIER)) {
                 element = itr.previous();
                 Point2D h = new Point2D.Double((path.getCurrentPoint().getX()+element.getX())/2,(path.getCurrentPoint().getY()+element.getY())/2);
                 path.lineTo(h.getX(), h.getY());
                 while (itr.hasPrevious()) {
                     Point2D b = itr.previous();
                     h.setLocation((b.getX()+element.getX())/2,(b.getY()+element.getY())/2);
-                    if (pathMode == QUADRATIC_BEZIER) path.quadTo(element.getX(), element.getY(), h.getX(), h.getY());
+                    if (pathMode.equals(PathMode.QUADRATIC_BEZIER)) path.quadTo(element.getX(), element.getY(), h.getX(), h.getY());
                     else path.curveTo(element.getX(), element.getY(), element.getX(), element.getY(), h.getX(), h.getY());
                     element = b;
                 }
                 h.setLocation((start.getX()+element.getX())/2,(start.getY()+element.getY())/2);
-                if (pathMode == QUADRATIC_BEZIER) path.quadTo(element.getX(), element.getY(), h.getX(), h.getY());
+                if (pathMode.equals(PathMode.QUADRATIC_BEZIER)) path.quadTo(element.getX(), element.getY(), h.getX(), h.getY());
                 else path.curveTo(element.getX(), element.getY(), element.getX(), element.getY(), h.getX(), h.getY());
             }
         }
         path.closePath();
         
-        repositionLabel();
+        if (supportPoints.isEmpty()) {
+            repositionLabel(start, finish);
+        } else{
+            repositionLabel(start, supportPoints.get(0));
+        }
+        
     }
     
     public void repositionLabel() {
-        Point2D line = new Point2D.Double(
-                (supportPoints.isEmpty()?to.getShape().getCenterX():supportPoints.get(0).x) - from.getShape().getCenterX(),
-                (supportPoints.isEmpty()?to.getShape().getCenterY():supportPoints.get(0).y) - from.getShape().getCenterY()); 
-        Point2D p = new Point2D.Double(from.getShape().getCenterX() + line.getX()/2, from.getShape().getCenterY() + line.getY()/2);
-        label.setLocation((int)p.getX()+1, (int)p.getY()+1);
-        if (path.intersects(label.getBounds()))
-            label.setLocation((int)p.getX(), (int)p.getY()-label.getHeight()-1);
-        
+        Point2D element;
+        if (!isDegOutAutomatic()) element = new Point2D.Double(from.getShape().getCenterX()+Math.cos(degOut*Math.PI/180),from.getShape().getCenterY()+Math.sin(degOut*Math.PI/180));
+        else if (!supportPoints.isEmpty()) element = supportPoints.get(0);
+        else element = new Point2D.Double(to.getShape().getCenterX(),to.getShape().getCenterY()+0.1);
+        Point2D start = getIntersectionPoint(element, from.getShape());
+        if (supportPoints.isEmpty()) {
+            if (!isDegInAutomatic()) element = new Point2D.Double(to.getShape().getCenterX()+Math.cos(degIn*Math.PI/180),to.getShape().getCenterY()+Math.sin(degIn*Math.PI/180));
+            else if (!supportPoints.isEmpty()) element = supportPoints.get(supportPoints.size()-1);
+            else element = new Point2D.Double(from.getShape().getCenterX(),from.getShape().getCenterY());
+            Point2D finish = getIntersectionPoint(element, to.getShape());          
+            repositionLabel(start, finish);
+        } else{
+            repositionLabel(start, supportPoints.get(0));
+        }        
+    }
+    
+    private void repositionLabel(Point2D start, Point2D finish) {
+        Point2D line = new Point2D.Double(finish.getX()-start.getX(),finish.getY()-start.getY());
+        if (from == to && supportPoints.size() == 2) {
+            labelRot = false;
+            line.setLocation(supportPoints.get(1).x-supportPoints.get(0).x, supportPoints.get(1).y-supportPoints.get(0).y);
+            label.setLocation(supportPoints.get(0).x+(int)line.getX()/2-label.getWidth()/2,supportPoints.get(0).y+1);
+            if (path.intersects(label.getBounds()))
+                label.setLocation(label.getX(), label.getY()-label.getHeight()-1);  
+        }
+        else if (labelRot) {
+            double length = line.distance(0,0);
+            line.setLocation(line.getX()/length,line.getY()/length);
+            labelRotDeg = Math.signum(line.getX()) * Math.signum(line.getY()) * Math.acos(Math.signum(line.getX()) * line.getX());         
+            label.setLocation((int)start.getX()+1, (int)start.getY()+1);   
+        } else {
+            Point2D p = new Point2D.Double(start.getX() + line.getX()/2, start.getY() + line.getY()/2);
+            label.setLocation((int)p.getX()+1, (int)p.getY()+1);
+            if (path.intersects(label.getBounds()))
+                label.setLocation(label.getX(), label.getY()-label.getHeight()-1);            
+        }
     }
     
     @Override

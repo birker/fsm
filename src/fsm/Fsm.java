@@ -6,21 +6,16 @@
 package fsm;
 
 import java.awt.Point;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Observable;
 
 /**
  *
  * @author Konnarr
  */
-public class Fsm  extends Observable implements Serializable{
-    private static final long serialVersionUID = 2345541351034924475L;
-    private ArrayList<Node> states = new ArrayList<Node>();
-    private ArrayList<Edge> transitions = new ArrayList<Edge>();
+public class Fsm extends Graph {
+    private static final long serialVersionUID = 2345541351034924476L;
     //redundant, but nice to have
     private String alphabet;
     
@@ -28,61 +23,24 @@ public class Fsm  extends Observable implements Serializable{
     private char anySymbol = '?'; //we can use that transition with any read Symbol
     private char elseSymbol = '!'; //we can use that transition when there is no other
     private char epsSymbol = '#'; //spontantious transition
-    private HashMap<Character, String> shortSymbols; //a list of short cuts (e.g. x (char) stands for 0 or 1 (String: 01)); should work in Blocks, too.
+    private HashMap<Character, String> shortSymbols = new HashMap<Character,String>(); //a list of short cuts (e.g. x (char) stands for 0 or 1 (String: 01)); should work in Blocks, too.
     
     //for universial levenshtein automatas, we have to be able to read input in blocks. 0 should be automatic
     private int blocksize = 1;
     //private int simNonDeterminism
     
     //Simulation etc.
-    private Element choice;
-    private ArrayList<Element> active = new ArrayList<Element>();
     private ArrayList<Element> activeEps = new ArrayList<Element>();
 
-    public Node addState(Point position) {
-        Node n = new Node(Node.getDefShape(), position, "q_{"+states.size()+"}");
-        states.add(n);
-        //notifyObservers();
+    public Fsm() {
+        super(true);
+    }
+    
+    @Override
+    public Vertex addVertex(Point position) {
+        Vertex n = new Vertex(Vertex.getDefShape(), position, "q_{"+getVertices().size()+"}");
+        getVertices().add(n);
         return n;
-    }
-    
-    public Edge addTransition(Node from, Node to, boolean autoSP) {
-        Edge e = new Edge(from, to, autoSP);
-        transitions.add(e);
-        from.getEdges().add(e);
-        //notifyObservers();
-        return e;
-    }
-    
-    public void removeTransition(Edge e) {
-        e.getFrom().getEdges().remove(e);
-        if (choice == e) choice = null;
-        active.remove(e);
-        transitions.remove(e);
-        //e.getLabel().getParent().remove(e.getLabel());        
-        //notifyObservers();
-    }
-    
-    public void removeState(Node n) {
-        if (choice == n) choice = null;
-        active.remove(n);
-        for (Edge e: (ArrayList<Edge>) transitions.clone()) {
-            if (e.getFrom() == n || e.getTo() == n) removeTransition(e);
-        }
-        states.remove(n);
-        //notifyObservers();
-    }
-    
-    public ArrayList<Node> getStates() {
-        return states;
-    }
-    
-    public ArrayList<Edge> getTransitions() {
-        return transitions;
-    }
-
-    public ArrayList<Element> getActive() {
-        return active;
     }
     
     public ArrayList<Element> getActiveEps() {
@@ -112,14 +70,6 @@ public class Fsm  extends Observable implements Serializable{
     public void setBlocksize(int blocksize) {
         this.blocksize = blocksize;
     }
-
-    public Element getChoice() {
-        return choice;
-    }
-
-    public void setChoice(Element choice) {
-        this.choice = choice;
-    }
     
     public char getEpsSymbol() {
         return epsSymbol;
@@ -141,52 +91,12 @@ public class Fsm  extends Observable implements Serializable{
         return shortSymbols;
     }
     
-    public void alignNodes() {
-        Iterator<Node> it = getStates().iterator();
-        if (!it.hasNext()) return;
-        Node n0 = it.next();
-        while (it.hasNext()) {
-            Node n = it.next();
-            double offx = n0.getShape().getX();
-            double offy = n0.getShape().getY();
-            double facx = Math.round((n.getShape().getX() - offx) / (3*n0.getPreferredWidth())) ;
-            double facy = Math.round((n.getShape().getY() - offy) / (3*n0.getShape().getHeight())) ;
-            double x = offx+facx*3*n0.getPreferredWidth();
-            double y = offy+facy*3*n0.getShape().getHeight();
-            //check if there is already a node;
-            boolean found = true;
-            while (found) {
-                found = false;
-            for (Node n2: getStates()) {
-                if (n==n2) break;
-                if (Math.abs(n2.getShape().getX() - x)<1 && Math.abs(n2.getShape().getY() - y)<1) {
-                    facx++;
-                    x = offx+facx*3*n0.getPreferredWidth();
-                    found = true;
-                }
-            }
-            }
-            n.getShape().setFrame(x,y,n.getShape().getWidth(),n.getShape().getHeight());
-        }
-        Iterator<Edge> it2 = getTransitions().iterator();
-        while (it2.hasNext()) {
-            it2.next().rebuildPath();                
-        }
-        //notifyObservers();
-        
-    }
-    
-    public void notifyObs() {
-        setChanged();
-        notifyObservers();
-    }
-    
     public void startSim() {
-        active.clear();
+        getActive().clear();
         activeEps.clear();
-        for (Node n: getStates()) {
+        for (Vertex n: getVertices()) {
             if (n.isInitial()) {
-                active.add(n);
+                getActive().add(n);
                 addSpontaniousNodes(n);
             }
         }
@@ -197,19 +107,35 @@ public class Fsm  extends Observable implements Serializable{
         return nextStep(input, true);
     }
     
+    private boolean isEqual(String s1, String s2) {
+        if (s1.length() != s2.length()) return false;
+        letter: for (int i = 0; i < s1.length(); i++) {
+            if (!shortSymbols.containsKey(s1.charAt(i))) {
+                if (s1.charAt(i)!=s2.charAt(i)) return false;
+            } else {
+                String t = shortSymbols.get(s1.charAt(i));
+                for (int j = 0; j < t.length(); j++) {
+                    if (t.charAt(j) == s2.charAt(i)) continue letter;
+                }
+                return false;
+            }
+        }
+        return true;
+    }
+    
     private boolean nextStep(String input, boolean check) {
-        active.addAll(activeEps);
+        getActive().addAll(activeEps);
         activeEps.clear();
-        for (Element n: (ArrayList<Element>) active.clone()) { //von jedem zustand suchen
-            active.remove(n);
-            if (n instanceof Node) {
+        for (Element n: (ArrayList<Element>) getActive().clone()) { //von jedem zustand suchen
+            getActive().remove(n);
+            if (n instanceof Vertex) {
                 boolean found = false;
                 ArrayList<Edge> epot = new ArrayList();
-                for (Edge e: ((Node)n).getEdges()) { //jede kante betrachten
+                for (Edge e: ((Vertex)n).getEdges()) { //jede kante betrachten
                     for (String s: e.getTransitions()) { //jeden übergang der kante
-                        if (s.equals(input)||s.equals(""+anySymbol)) {
-                            active.add(e);
-                            active.add(e.getTo());
+                        if (isEqual(s,input.substring(0,Math.min((blocksize==0?s.length():blocksize), input.length())))||s.equals(""+anySymbol)) {
+                            getActive().add(e);
+                            getActive().add(e.getTo());
                             addSpontaniousNodes(e.getTo());
                             found = true;
                             break;
@@ -221,34 +147,27 @@ public class Fsm  extends Observable implements Serializable{
                 }
                 if (!found && !epot.isEmpty()) {
                     for (Edge e: epot) {
-                        active.add(e);
-                        active.add(e.getTo());
+                        getActive().add(e);
+                        getActive().add(e.getTo());
                         addSpontaniousNodes(e.getTo());  
                         
                     }                  
                 }
             }
         }
-        if (active.isEmpty()) return false;
-        //spontanious
-        for (Element n: (ArrayList<Element>) active.clone()) {
-            if (n instanceof Node) {
-                
-            }
-        }
+        if (getActive().isEmpty()) return false;
         //remove duplicates - i need them during work process
         HashSet hs = new HashSet();
-        hs.addAll(active);
-        active.clear();
-        active.addAll(hs);
-        activeEps.removeAll(active);
+        hs.addAll(getActive());
+        getActive().clear();
+        getActive().addAll(hs);
+        //activeEps.removeAll(getActive());
         if (check) {
-            //notifyObservers();
-            for (Element n: active) {
-                if ((n instanceof Node)&&(((Node)n).isFinal())) return true;
+            for (Element n: getActive()) {
+                if ((n instanceof Vertex)&&(((Vertex)n).isFinal())) return true;
             }
             for (Element n: activeEps) {
-                if ((n instanceof Node)&&(((Node)n).isFinal())) return true;
+                if ((n instanceof Vertex)&&(((Vertex)n).isFinal())) return true;
             }
         } else return true;
         return false;
@@ -256,25 +175,138 @@ public class Fsm  extends Observable implements Serializable{
     
     public boolean accept(String input) {
         startSim();
-        for (int i = 0; i < input.length()-1; i++) {
-            if (!nextStep(""+input.charAt(i),false)) return false;
+        for (int i = 0; i < input.length()-blocksize; i += blocksize) {
+            if (!nextStep(input.substring(i),false)) return false;
         }
-        boolean b = nextStep(""+input.charAt(input.length()-1),true);
-        active.clear();
+        //TODO wie sieth der input des letzten schrittes aus?
+        boolean b = nextStep(input.substring((input.length() / blocksize)-1),true);
+        getActive().clear();
         return b;
     }
 
-    private void addSpontaniousNodes(Node to) {
+    private void addSpontaniousNodes(Vertex to) {
         for (Edge e: to.getEdges()) {
             for (String s: e.getTransitions()) {
                 if (s.equals(""+epsSymbol)) {
                     activeEps.add(e);
-                    if (!active.contains(e.getTo()) && !activeEps.contains(e.getTo())) {
+                    if (/*!getActive().contains(e.getTo()) &&*/ !activeEps.contains(e.getTo())) {
                         activeEps.add(e.getTo());
                         addSpontaniousNodes(e.getTo());
                     }
                 }
             }
         }
+    }
+    
+    @Override
+    public void setDirected(boolean directed) {
+        if (directed = false) throw new IllegalArgumentException("Fsm are always directed!");
+    }
+   
+    public static Fsm distanceAutomaton(int distance, String pattern, int type) {
+        Fsm fsm = new Fsm();
+        for (int i=0; i <= distance; i++) {
+            for (int j = 0; j <= pattern.length(); j++) {
+                    Vertex n = fsm.addVertex(new Point(30+j*3*(int)Vertex.getDefShape().getWidth(),10+(distance-i)*3*(int)Vertex.getDefShape().getHeight()));
+                    n.setText(i+"-"+j);
+                    if (j==pattern.length()) n.setFinal(true);
+                    if (j>0) {
+                        Edge e = fsm.addEdge(fsm.getVertices().get(fsm.getVertices().size()-2), n, true);
+                        e.getTransitions().add(""+pattern.charAt(j-1));
+                        e.setText(false);
+                    }
+                    if (j>0 && i>0) {
+                        Edge e = fsm.addEdge(fsm.getVertices().get((i-1)*(pattern.length()+1)+j-1), n, true);
+                        e.getTransitions().add(""+fsm.getElseSymbol());
+                        e.setText(false);
+                    }
+                    if (type>0) {
+                        if (j>0 && i>0) {
+                            Edge e = fsm.getEdges().get(fsm.getEdges().size()-1);
+                            e.getTransitions().add(""+fsm.getEpsSymbol());
+                            e.setText(false);
+                        }
+                        if (i>0) {
+                            Edge e = fsm.addEdge(fsm.getVertices().get((i-1)*(pattern.length()+1)+j), n, true);
+                            e.getTransitions().add(""+fsm.getElseSymbol());
+                            e.setText(false);
+                        }
+                    }
+            }
+        }
+        if (type==0) {
+            for (int i = distance; i>0; i--) {
+                for (int j = i-1; j >= 0; j--) {
+                    fsm.removeVertex(fsm.getVertices().get(i*(pattern.length()+1)+j));
+                }
+            }
+        }
+        fsm.getVertices().get(0).setInitial(true);
+        return fsm;
+    }
+    
+    private static StringBuilder prepareString(int k) {
+        StringBuilder s = new StringBuilder(2*k+1);
+        for (int j = -k; j<=k; j++) {
+            s.append('_');
+        }
+        return s;
+    }   
+    
+    public static Fsm uniHamming(int distance) {
+        Fsm fsm = new Fsm();
+        for (int i=0; i <= distance; i++) {
+            Vertex n = fsm.addVertex(new Point(30+i*3*(int)Vertex.getDefShape().getWidth(),10));
+            n.setText("I^{"+i+"}");
+            n.setFinal(true);
+            Edge e = fsm.addEdge(n, n, true);
+            e.getTransitions().add("1");
+            e.setText(false);
+            if (i>0) {
+                e = fsm.addEdge(fsm.getVertices().get(fsm.getVertices().size()-2), n, true);
+                e.getTransitions().add("0");
+                e.setText(false);
+            }
+        }
+        fsm.getVertices().get(0).setInitial(true);
+        return fsm;
+    }
+    
+    public static Fsm uniNLevenshtein(int distance) {
+        Fsm fsm = new Fsm();
+        fsm.getShortSymbols().put('_', "01");
+        fsm.setBlocksize(distance*2+1);
+        for (int i=0; i <= distance; i++) {
+            for (int j = -i; j<=i; j++) {
+                Vertex n = fsm.addVertex(new Point(30+i*3*(int)Vertex.getDefShape().getWidth(),10+(distance+j)*2*(int)Vertex.getDefShape().getHeight()));
+                n.setText("I"+(j==0?"":(j>0?"+"+j:j))+"^{"+i+"}");
+                n.setFinal(true);
+                Edge e = fsm.addEdge(n, n, true);
+                e.getTransitions().add(prepareString(distance).replace(j+distance, j+distance+1, "1").toString());
+                e.setText(false);
+                if (i>0) {
+                    if (j < i-1) {
+                        e =fsm.addEdge(fsm.getVertices().get(fsm.getVertices().size()-2*i), n, true);
+                        e.getTransitions().add(prepareString(distance).replace(distance-(-j)+1, distance-(-j)+2, "0").toString());
+                        e.setText(false);
+                    }
+                    if (i != Math.abs(j)) {
+                        e =fsm.addEdge(fsm.getVertices().get(fsm.getVertices().size()-2*i-1), n, true);
+                        e.getTransitions().add(prepareString(distance).replace(distance-(-j), distance-(-j)+1, "0").toString());
+                        e.setText(false);                        
+                    }
+                    if (j > -i+1) {
+                        e =fsm.addEdge(fsm.getVertices().get(fsm.getVertices().size()-2*i-2), n, true);
+                        e.getTransitions().add(prepareString(distance).replace(distance-(-j)-1, distance-(-j), "0").replace(distance-(-j), distance-(-j)+1, "1").toString());
+                        e.setText(false);                         
+                    }
+                     
+                }
+            }
+            
+        }
+        //TODO es fehlen ein paar kanten. welche genau?? auf jeden fall i0-->i+22
+        fsm.getVertices().get(0).setInitial(true);
+        return fsm;
     }
 }

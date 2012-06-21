@@ -12,7 +12,9 @@ package fsm.gui;
 
 import fsm.Edge;
 import fsm.Fsm;
-import fsm.Node;
+import fsm.Graph;
+import fsm.Vertex;
+import fsm.PathMode;
 import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -21,11 +23,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import javax.swing.AbstractButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
@@ -36,20 +41,19 @@ import javax.swing.UIManager.LookAndFeelInfo;
  */
 public class Main extends javax.swing.JFrame {
 
-    private Fsm fsm = new Fsm();
-    private JFrame graphWindow;
-    private JFrame simulationWindow;
-    private Graph g;
+    private JFrame codingWindow;
+    private ArrayList<JFrame> graphWindows = new ArrayList();
+    private ArrayList<JFrame> simulationWindows = new ArrayList();
     private JFileChooser fs = new JFileChooser();
     
-    private void initGraphWindow() {
-        graphWindow = new JFrame("Graph");
+    private void initGraphWindow(Graph g) {
+        JFrame graphWindow = new JFrame("Graph");
         graphWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         graphWindow.setSize(400, 400);
         graphWindow.setLocation(200, 200);
-        g = new Graph(fsm);
-        fsm.addObserver(g);
-        graphWindow.getContentPane().add(g);
+        GraphPanel gr = new GraphPanel(g);
+        g.addObserver(gr);
+        graphWindow.getContentPane().add(gr);
         graphWindow.setVisible(true);
         graphWindow.addWindowListener(new WindowAdapter() {
             @Override
@@ -57,13 +61,30 @@ public class Main extends javax.swing.JFrame {
                 jCheckBoxMenuItem1.setSelected(false);
             }
         });
+        graphWindows.add(graphWindow);
     }
     
-    private void initSimulationWindow() {
-        simulationWindow = new JFrame("Simulation");
+    private void initCodingWindow() {
+        codingWindow = new JFrame("Eingabe kodieren für universelle Abstandsautomaten");
+        codingWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        codingWindow.setSize(550, 300);
+        codingWindow.setLocation(200, 200);
+        InputCoder ic = new InputCoder();
+        codingWindow.getContentPane().add(ic);
+        codingWindow.setVisible(true);
+        codingWindow.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent evt) {
+                jCheckBoxMenuItem4.setSelected(false);
+            }
+        });
+    }
+    
+    private void initSimulationWindow(Fsm fsm) {
+        JFrame simulationWindow = new JFrame("Simulation");
         simulationWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         simulationWindow.setLocation(550, 50);
-        Simulation s = new Simulation(fsm);
+        SimulationPanel s = new SimulationPanel(fsm);
         simulationWindow.setSize(s.getPreferredSize());
         simulationWindow.getContentPane().add(s);
         simulationWindow.setVisible(true);
@@ -73,21 +94,13 @@ public class Main extends javax.swing.JFrame {
                 jCheckBoxMenuItem1.setSelected(false);
             }
         });*/
+        simulationWindows.add(simulationWindow);
     }    
-    
-    private void changeFsm(Fsm fsm) {
-        this.fsm = fsm;
-        graphWindow.dispose();
-        initGraphWindow();
-        simulationWindow.dispose();
-        initSimulationWindow();
-    }
     
     /** Creates new form Main */
     public Main() {
         initComponents();
-        initGraphWindow();
-        initSimulationWindow();
+        jTabbedPane1.add("Automat 0",new GraphTab(new Fsm()));
         try {
             for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                 mLooknFeel.add(new JMenuItem(info.getName()) {
@@ -108,7 +121,7 @@ public class Main extends javax.swing.JFrame {
                                 }
 
                                 SwingUtilities.updateComponentTreeUI(Main.this);
-                                SwingUtilities.updateComponentTreeUI(graphWindow);
+                                //SwingUtilities.updateComponentTreeUI(graphWindow);
                                 pack();
                             }
                         });
@@ -128,48 +141,46 @@ public class Main extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jButton1 = new javax.swing.JButton();
-        jTextField2 = new javax.swing.JTextField();
-        jTextField3 = new javax.swing.JTextField();
-        jLabel1 = new javax.swing.JLabel();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
         jTextField1 = new javax.swing.JTextField();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem8 = new javax.swing.JMenuItem();
+        jMenuItem10 = new javax.swing.JMenuItem();
+        jSeparator2 = new javax.swing.JPopupMenu.Separator();
         jMenuItem5 = new javax.swing.JMenuItem();
         jMenuItem6 = new javax.swing.JMenuItem();
         jMenuItem4 = new javax.swing.JMenuItem();
+        jSeparator3 = new javax.swing.JPopupMenu.Separator();
+        jMenuItem11 = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         jCheckBoxMenuItem1 = new javax.swing.JCheckBoxMenuItem();
         mLooknFeel = new javax.swing.JMenu();
         jMenu4 = new javax.swing.JMenu();
+        jMenuItem9 = new javax.swing.JMenuItem();
         jMenuItem7 = new javax.swing.JMenuItem();
         jCheckBoxMenuItem2 = new javax.swing.JCheckBoxMenuItem();
+        jMenu5 = new javax.swing.JMenu();
+        jMenuItem13 = new javax.swing.JMenuItem();
+        jMenuItem12 = new javax.swing.JMenuItem();
+        jMenuItem14 = new javax.swing.JMenuItem();
+        jMenuItem15 = new javax.swing.JMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        jMenuItem16 = new javax.swing.JMenuItem();
+        jCheckBoxMenuItem3 = new javax.swing.JCheckBoxMenuItem();
+        jMenuItem17 = new javax.swing.JMenuItem();
+        jMenuItem18 = new javax.swing.JMenuItem();
+        jMenuItem19 = new javax.swing.JMenuItem();
+        jSeparator4 = new javax.swing.JPopupMenu.Separator();
+        jMenuItem20 = new javax.swing.JMenuItem();
+        jSeparator5 = new javax.swing.JPopupMenu.Separator();
+        jCheckBoxMenuItem4 = new javax.swing.JCheckBoxMenuItem();
         jMenu3 = new javax.swing.JMenu();
         jMenuItem2 = new javax.swing.JMenuItem();
         jMenuItem3 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-        jButton1.setText("Beispielgraph erzeugen");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-
-        jTextField2.setText("jTextField2");
-        jTextField2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField2ActionPerformed(evt);
-            }
-        });
-
-        jTextField3.setEditable(false);
-        jTextField3.setText("jTextField3");
-
-        jLabel1.setText("jLabel1");
 
         jTextField1.setText("?!#");
         jTextField1.addActionListener(new java.awt.event.ActionListener() {
@@ -189,8 +200,18 @@ public class Main extends javax.swing.JFrame {
         });
         jMenu1.add(jMenuItem8);
 
+        jMenuItem10.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.ALT_MASK | java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem10.setText("neuer Graph");
+        jMenuItem10.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem10ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem10);
+        jMenu1.add(jSeparator2);
+
         jMenuItem5.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
-        jMenuItem5.setText("Automat speichern");
+        jMenuItem5.setText("speichern");
         jMenuItem5.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem5ActionPerformed(evt);
@@ -199,7 +220,7 @@ public class Main extends javax.swing.JFrame {
         jMenu1.add(jMenuItem5);
 
         jMenuItem6.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
-        jMenuItem6.setText("Automat laden");
+        jMenuItem6.setText("laden");
         jMenuItem6.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem6ActionPerformed(evt);
@@ -208,15 +229,25 @@ public class Main extends javax.swing.JFrame {
         jMenu1.add(jMenuItem6);
 
         jMenuItem4.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.CTRL_MASK));
-        jMenuItem4.setText("Graph als PNG speichern");
+        jMenuItem4.setText("Graphen als PNG exportieren");
         jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem4ActionPerformed(evt);
             }
         });
         jMenu1.add(jMenuItem4);
+        jMenu1.add(jSeparator3);
 
-        jMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0));
+        jMenuItem11.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0));
+        jMenuItem11.setText("schließen");
+        jMenuItem11.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem11ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem11);
+
+        jMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, java.awt.event.InputEvent.SHIFT_MASK));
         jMenuItem1.setText("beenden");
         jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -232,6 +263,7 @@ public class Main extends javax.swing.JFrame {
         jCheckBoxMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_G, java.awt.event.InputEvent.CTRL_MASK));
         jCheckBoxMenuItem1.setSelected(true);
         jCheckBoxMenuItem1.setText("Graph");
+        jCheckBoxMenuItem1.setEnabled(false);
         jCheckBoxMenuItem1.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 jCheckBoxMenuItem1ItemStateChanged(evt);
@@ -245,6 +277,14 @@ public class Main extends javax.swing.JFrame {
         jMenuBar1.add(jMenu2);
 
         jMenu4.setText("Graph");
+
+        jMenuItem9.setText("Beispielgraph erzeugen");
+        jMenuItem9.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+        jMenu4.add(jMenuItem9);
 
         jMenuItem7.setText("Graph ausrichten");
         jMenuItem7.addActionListener(new java.awt.event.ActionListener() {
@@ -263,6 +303,77 @@ public class Main extends javax.swing.JFrame {
         jMenu4.add(jCheckBoxMenuItem2);
 
         jMenuBar1.add(jMenu4);
+
+        jMenu5.setText("Abstandsautomaten");
+
+        jMenuItem13.setText("spezielle Automaten");
+        jMenuItem13.setEnabled(false);
+        jMenu5.add(jMenuItem13);
+
+        jMenuItem12.setText("Hamming");
+        jMenuItem12.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem12ActionPerformed(evt);
+            }
+        });
+        jMenu5.add(jMenuItem12);
+
+        jMenuItem14.setText("Levenshtein");
+        jMenuItem14.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem12ActionPerformed(evt);
+            }
+        });
+        jMenu5.add(jMenuItem14);
+
+        jMenuItem15.setText("Damerau-Levenshtein");
+        jMenuItem15.setEnabled(false);
+        jMenu5.add(jMenuItem15);
+        jMenu5.add(jSeparator1);
+
+        jMenuItem16.setText("universelle Automaten");
+        jMenuItem16.setEnabled(false);
+        jMenu5.add(jMenuItem16);
+
+        jCheckBoxMenuItem3.setText("deterministisch");
+        jCheckBoxMenuItem3.setEnabled(false);
+        jMenu5.add(jCheckBoxMenuItem3);
+
+        jMenuItem17.setText("Hamming");
+        jMenuItem17.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem17ActionPerformed(evt);
+            }
+        });
+        jMenu5.add(jMenuItem17);
+
+        jMenuItem18.setText("Levenshtein");
+        jMenuItem18.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem18ActionPerformed(evt);
+            }
+        });
+        jMenu5.add(jMenuItem18);
+
+        jMenuItem19.setText("Damerau-Levenshtein");
+        jMenuItem19.setEnabled(false);
+        jMenu5.add(jMenuItem19);
+        jMenu5.add(jSeparator4);
+
+        jMenuItem20.setText("univ. Levenshtein nach  Mihov & Schulz");
+        jMenuItem20.setEnabled(false);
+        jMenu5.add(jMenuItem20);
+        jMenu5.add(jSeparator5);
+
+        jCheckBoxMenuItem4.setText("Eingabekodierung");
+        jCheckBoxMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxMenuItem4ActionPerformed(evt);
+            }
+        });
+        jMenu5.add(jCheckBoxMenuItem4);
+
+        jMenuBar1.add(jMenu5);
 
         jMenu3.setText("Hilfe");
 
@@ -293,34 +404,18 @@ public class Main extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 204, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addContainerGap(43, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jButton1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(296, Short.MAX_VALUE))))
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(53, 53, 53))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 332, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(301, Short.MAX_VALUE))
         );
 
         pack();
@@ -332,48 +427,52 @@ public class Main extends javax.swing.JFrame {
 
     private void jCheckBoxMenuItem1ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItem1ItemStateChanged
         if (jCheckBoxMenuItem1.isSelected()) {
-            initGraphWindow();
+//            initGraphWindow(jTabbedPane1);
         } else {
-            graphWindow.dispose();
+//            graphWindow.dispose();
         }        
     }//GEN-LAST:event_jCheckBoxMenuItem1ItemStateChanged
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        Node n = fsm.addState(new Point(200, 100));
+        Graph g = ((GraphTab) jTabbedPane1.getSelectedComponent()).getGraph();
+        Vertex n = g.addVertex(new Point(200, 100));
         n.setFinal(true);
         n.setInitial(true);
         n.setText("q_0");
-        Node n2 = fsm.addState(new Point(5, 100));
+        Vertex n2 = g.addVertex(new Point(5, 100));
         n2.setText("q_1");
         n2.setAutoWidth(true);
         
-        Edge e = fsm.addTransition(n, n2, false);
+        Edge e = g.addEdge(n, n2, false);
         e.getSupportPoints().add(new Point(125,90));
         e.getTransitions().add("0");
+        e.setText(false);
         
-        e = fsm.addTransition(n2, n, false);
+        e = g.addEdge(n2, n, false);
         e.getSupportPoints().add(new Point(25,30));
         e.getSupportPoints().add(new Point(320,30));
         e.getSupportPoints().add(new Point(320,120));
-        e.setPathMode(Edge.CUBIC_BEZIER);
+        e.setPathMode(PathMode.CUBIC_BEZIER);
         e.getTransitions().add("1");
+        e.setText(false);
         
-        e = fsm.addTransition(n, n, false);
+        e = g.addEdge(n, n, false);
         e.getSupportPoints().add(new Point(210,160));
         e.getSupportPoints().add(new Point(230,160));
         e.getTransitions().add("1");
+        e.setText(false);
         
-        n = fsm.addState(new Point(100,220));
+        n = g.addVertex(new Point(100,220));
         n.setText("o_ o");
-        e = fsm.addTransition(n, n, false);
+        e = g.addEdge(n, n, false);
         e.getSupportPoints().add(new Point((int)n.getShape().getCenterX(),(int)(n.getShape().getY()+n.getShape().getHeight()-1)));
-        e = fsm.addTransition(n, n, false);
+        e = g.addEdge(n, n, false);
         e.setDegOut(Edge.NORTH - 30);
         e.setDegIn(Edge.NORTH - 30);
-        e = fsm.addTransition(n, n, false);
+        e = g.addEdge(n, n, false);
         e.setDegOut(Edge.NORTH + 30);
         e.setDegIn(Edge.NORTH + 30);
-        fsm.notifyObs();
+        g.notifyObs();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
@@ -387,7 +486,7 @@ public class Main extends javax.swing.JFrame {
     private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
         if (fs.showSaveDialog(this)==JFileChooser.APPROVE_OPTION) {
             try {
-                g.saveToPNG(fs.getSelectedFile());
+                ((GraphTab) jTabbedPane1.getSelectedComponent()).getGraphPanel().saveToPNG(fs.getSelectedFile());
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(this, "Konnte die Datei nicht speichern", "Fehler beim Speichern", JOptionPane.ERROR_MESSAGE);
             }
@@ -399,7 +498,7 @@ public class Main extends javax.swing.JFrame {
             try {
                 FileOutputStream fout = new FileOutputStream(fs.getSelectedFile());
                 ObjectOutputStream oos = new ObjectOutputStream(fout);
-                oos.writeObject(fsm);
+                oos.writeObject(((GraphTab) jTabbedPane1.getSelectedComponent()).getGraph());
                 oos.close();
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(this, "Konnte die Datei nicht speichern", "Fehler beim Speichern", JOptionPane.ERROR_MESSAGE);
@@ -412,7 +511,7 @@ public class Main extends javax.swing.JFrame {
             try {
                 FileInputStream fin = new FileInputStream(fs.getSelectedFile());
                 ObjectInputStream ois = new ObjectInputStream(fin);
-                changeFsm((Fsm) ois.readObject());
+                jTabbedPane1.add(fs.getSelectedFile().getName(),new GraphTab((Graph) ois.readObject()));
                 ois.close();
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(this, "Konnte die Datei nicht öffnen", "Fehler beim Laden", JOptionPane.ERROR_MESSAGE);
@@ -423,14 +522,10 @@ public class Main extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jMenuItem6ActionPerformed
 
-    private void jTextField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField2ActionPerformed
-        jTextField3.setText(Node.parseString(jTextField2.getText()));
-        jLabel1.setText(Node.parseString(jTextField2.getText()));
-    }//GEN-LAST:event_jTextField2ActionPerformed
-
     private void jMenuItem7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem7ActionPerformed
-        fsm.alignNodes();
-        fsm.notifyObs();
+        Graph g = ((GraphTab) jTabbedPane1.getSelectedComponent()).getGraph();
+        g.alignVertices();
+        g.notifyObs();
     }//GEN-LAST:event_jMenuItem7ActionPerformed
 
     private void jCheckBoxMenuItem2ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItem2ItemStateChanged
@@ -438,14 +533,76 @@ public class Main extends javax.swing.JFrame {
     }//GEN-LAST:event_jCheckBoxMenuItem2ItemStateChanged
 
     private void jMenuItem8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem8ActionPerformed
-        changeFsm(new Fsm());
+        jTabbedPane1.add("Automat "+jTabbedPane1.getComponentCount(),new GraphTab(new Fsm()));
+        jTabbedPane1.setSelectedIndex(jTabbedPane1.getComponentCount()-1);
     }//GEN-LAST:event_jMenuItem8ActionPerformed
 
     private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
-        if (jTextField1.getText().length()>0) fsm.setAnySymbol(jTextField1.getText().charAt(0));
-        if (jTextField1.getText().length()>1) fsm.setElseSymbol(jTextField1.getText().charAt(1));
-        if (jTextField1.getText().length()>2) fsm.setEpsSymbol(jTextField1.getText().charAt(2));
+        if (((GraphTab) jTabbedPane1.getSelectedComponent()).getGraph() instanceof Fsm) {
+            Fsm fsm = (Fsm) ((GraphTab) jTabbedPane1.getSelectedComponent()).getGraph();
+            if (jTextField1.getText().length()>0) fsm.setAnySymbol(jTextField1.getText().charAt(0));
+            if (jTextField1.getText().length()>1) fsm.setElseSymbol(jTextField1.getText().charAt(1));
+            if (jTextField1.getText().length()>2) fsm.setEpsSymbol(jTextField1.getText().charAt(2));
+        }
     }//GEN-LAST:event_jTextField1ActionPerformed
+
+    private void jMenuItem11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem11ActionPerformed
+        jTabbedPane1.remove(jTabbedPane1.getSelectedComponent());
+    }//GEN-LAST:event_jMenuItem11ActionPerformed
+
+    private void jMenuItem10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem10ActionPerformed
+        jTabbedPane1.add("Graph "+jTabbedPane1.getComponentCount(),new GraphTab(new Graph(false)));
+        jTabbedPane1.setSelectedIndex(jTabbedPane1.getComponentCount()-1);
+    }//GEN-LAST:event_jMenuItem10ActionPerformed
+
+    private void jMenuItem12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem12ActionPerformed
+        String s = JOptionPane.showInputDialog("Musterwort?");
+        if (s == null) return;
+        int k;
+        try {
+            k = Integer.parseInt(JOptionPane.showInputDialog("Abstand?"));
+        } catch (NumberFormatException e) {
+            return;
+        }
+        if (k<0) return;
+        Fsm fsm = Fsm.distanceAutomaton(k, s, (evt.getSource()==jMenuItem12?0:1));
+        jTabbedPane1.add(((JMenuItem)evt.getSource()).getText()+" "+s+" ("+k+")",new GraphTab(fsm));
+        fsm.notifyObs();
+    }//GEN-LAST:event_jMenuItem12ActionPerformed
+
+    private void jMenuItem17ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem17ActionPerformed
+        int k;
+        try {
+            k = Integer.parseInt(JOptionPane.showInputDialog("Abstand?"));
+        } catch (NumberFormatException e) {
+            return;
+        }
+        if (k<0) return;
+        Fsm fsm = Fsm.uniHamming(k);
+        jTabbedPane1.add("univ. "+(jCheckBoxMenuItem3.isSelected()?"det. ":"")+((JMenuItem)evt.getSource()).getText()+" ("+k+")",new GraphTab(fsm));
+        fsm.notifyObs();
+    }//GEN-LAST:event_jMenuItem17ActionPerformed
+
+    private void jMenuItem18ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem18ActionPerformed
+        int k;
+        try {
+            k = Integer.parseInt(JOptionPane.showInputDialog("Abstand?"));
+        } catch (NumberFormatException e) {
+            return;
+        }
+        if (k<0) return;
+        Fsm fsm = Fsm.uniNLevenshtein(k);
+        jTabbedPane1.add("univ. "+(jCheckBoxMenuItem3.isSelected()?"det. ":"")+((JMenuItem)evt.getSource()).getText()+" ("+k+")",new GraphTab(fsm));
+        fsm.notifyObs();
+    }//GEN-LAST:event_jMenuItem18ActionPerformed
+
+    private void jCheckBoxMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItem4ActionPerformed
+        if (jCheckBoxMenuItem4.isSelected()) {
+            initCodingWindow();
+        } else {
+            codingWindow.dispose();
+        }
+    }//GEN-LAST:event_jCheckBoxMenuItem4ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -462,26 +619,43 @@ public class Main extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem1;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem2;
-    private javax.swing.JLabel jLabel1;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem3;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem4;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu4;
+    private javax.swing.JMenu jMenu5;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JMenuItem jMenuItem10;
+    private javax.swing.JMenuItem jMenuItem11;
+    private javax.swing.JMenuItem jMenuItem12;
+    private javax.swing.JMenuItem jMenuItem13;
+    private javax.swing.JMenuItem jMenuItem14;
+    private javax.swing.JMenuItem jMenuItem15;
+    private javax.swing.JMenuItem jMenuItem16;
+    private javax.swing.JMenuItem jMenuItem17;
+    private javax.swing.JMenuItem jMenuItem18;
+    private javax.swing.JMenuItem jMenuItem19;
     private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JMenuItem jMenuItem20;
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JMenuItem jMenuItem5;
     private javax.swing.JMenuItem jMenuItem6;
     private javax.swing.JMenuItem jMenuItem7;
     private javax.swing.JMenuItem jMenuItem8;
+    private javax.swing.JMenuItem jMenuItem9;
+    private javax.swing.JPopupMenu.Separator jSeparator1;
+    private javax.swing.JPopupMenu.Separator jSeparator2;
+    private javax.swing.JPopupMenu.Separator jSeparator3;
+    private javax.swing.JPopupMenu.Separator jSeparator4;
+    private javax.swing.JPopupMenu.Separator jSeparator5;
+    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
     private javax.swing.JMenu mLooknFeel;
     // End of variables declaration//GEN-END:variables
 
