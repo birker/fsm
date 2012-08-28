@@ -10,7 +10,6 @@
  */
 package fsm.gui;
 
-import javax.swing.JCheckBox;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -18,6 +17,7 @@ import javax.swing.table.DefaultTableModel;
  * @author Konnarr
  */
 public class InputCoder extends javax.swing.JPanel {
+    private static final long serialVersionUID = 1L;
 
     /** Creates new form InputCoder */
     public InputCoder() {

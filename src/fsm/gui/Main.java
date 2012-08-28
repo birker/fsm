@@ -11,10 +11,10 @@
 package fsm.gui;
 
 import fsm.Edge;
+import fsm.EdgeFsm;
 import fsm.Fsm;
 import fsm.Graph;
 import fsm.Vertex;
-import fsm.PathMode;
 import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -23,14 +23,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
+import java.util.HashSet;
 import javax.swing.AbstractButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
@@ -40,13 +38,18 @@ import javax.swing.UIManager.LookAndFeelInfo;
  * @author Konnarr
  */
 public class Main extends javax.swing.JFrame {
+    private static final long serialVersionUID = 1L;
 
     private JFrame codingWindow;
-    private ArrayList<JFrame> graphWindows = new ArrayList();
-    private ArrayList<JFrame> simulationWindows = new ArrayList();
+    //private ArrayList<JFrame> graphWindows = new ArrayList<JFrame>();
+    //private ArrayList<JFrame> simulationWindows = new ArrayList<JFrame>();
     private JFileChooser fs = new JFileChooser();
     
-    private void initGraphWindow(Graph g) {
+    private Graph getSelectedGraph() {
+        return ((GraphTab) jTabbedPane1.getSelectedComponent()).getGraph();
+    }
+    
+    /*private void initGraphWindow(Graph g) {
         JFrame graphWindow = new JFrame("Graph");
         graphWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         graphWindow.setSize(400, 400);
@@ -62,7 +65,7 @@ public class Main extends javax.swing.JFrame {
             }
         });
         graphWindows.add(graphWindow);
-    }
+    }*/
     
     private void initCodingWindow() {
         codingWindow = new JFrame("Eingabe kodieren für universelle Abstandsautomaten");
@@ -80,7 +83,7 @@ public class Main extends javax.swing.JFrame {
         });
     }
     
-    private void initSimulationWindow(Fsm fsm) {
+    /*private void initSimulationWindow(Fsm fsm) {
         JFrame simulationWindow = new JFrame("Simulation");
         simulationWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         simulationWindow.setLocation(550, 50);
@@ -93,9 +96,9 @@ public class Main extends javax.swing.JFrame {
             public void windowClosing(WindowEvent evt) {
                 jCheckBoxMenuItem1.setSelected(false);
             }
-        });*/
+        });
         simulationWindows.add(simulationWindow);
-    }    
+    }    */
     
     /** Creates new form Main */
     public Main() {
@@ -142,7 +145,7 @@ public class Main extends javax.swing.JFrame {
     private void initComponents() {
 
         jTabbedPane1 = new javax.swing.JTabbedPane();
-        jTextField1 = new javax.swing.JTextField();
+        jCheckBox1 = new javax.swing.JCheckBox();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem8 = new javax.swing.JMenuItem();
@@ -160,7 +163,22 @@ public class Main extends javax.swing.JFrame {
         jMenu4 = new javax.swing.JMenu();
         jMenuItem9 = new javax.swing.JMenuItem();
         jMenuItem7 = new javax.swing.JMenuItem();
+        jCheckBoxMenuItem5 = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItem2 = new javax.swing.JCheckBoxMenuItem();
+        jMenu6 = new javax.swing.JMenu();
+        jMenu7 = new javax.swing.JMenu();
+        jMenuItem21 = new javax.swing.JMenuItem();
+        jMenuItem22 = new javax.swing.JMenuItem();
+        jMenuItem23 = new javax.swing.JMenuItem();
+        jMenu8 = new javax.swing.JMenu();
+        jMenuItem25 = new javax.swing.JMenuItem();
+        jMenuItem28 = new javax.swing.JMenuItem();
+        jMenuItem26 = new javax.swing.JMenuItem();
+        jMenuItem27 = new javax.swing.JMenuItem();
+        jMenuItem24 = new javax.swing.JMenuItem();
+        jMenuItem30 = new javax.swing.JMenuItem();
+        jMenuItem31 = new javax.swing.JMenuItem();
+        jMenuItem29 = new javax.swing.JMenuItem();
         jMenu5 = new javax.swing.JMenu();
         jMenuItem13 = new javax.swing.JMenuItem();
         jMenuItem12 = new javax.swing.JMenuItem();
@@ -182,12 +200,7 @@ public class Main extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jTextField1.setText("?!#");
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
-            }
-        });
+        jCheckBox1.setText("jCheckBox1");
 
         jMenu1.setText("Datei");
 
@@ -294,6 +307,15 @@ public class Main extends javax.swing.JFrame {
         });
         jMenu4.add(jMenuItem7);
 
+        jCheckBoxMenuItem5.setSelected(true);
+        jCheckBoxMenuItem5.setLabel("automatische Hilfspunkte");
+        jCheckBoxMenuItem5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxMenuItem5ActionPerformed(evt);
+            }
+        });
+        jMenu4.add(jCheckBoxMenuItem5);
+
         jCheckBoxMenuItem2.setText("rechtwinklige Kanten");
         jCheckBoxMenuItem2.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -303,6 +325,106 @@ public class Main extends javax.swing.JFrame {
         jMenu4.add(jCheckBoxMenuItem2);
 
         jMenuBar1.add(jMenu4);
+
+        jMenu6.setLabel("Automat");
+
+        jMenu7.setLabel("Elimination spontaner Übergänge");
+
+        jMenuItem21.setLabel("von links (default)");
+        jMenuItem21.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem21ActionPerformed(evt);
+            }
+        });
+        jMenu7.add(jMenuItem21);
+
+        jMenuItem22.setLabel("von rechts");
+        jMenuItem22.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem22ActionPerformed(evt);
+            }
+        });
+        jMenu7.add(jMenuItem22);
+
+        jMenuItem23.setLabel("beidseitig");
+        jMenuItem23.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem23ActionPerformed(evt);
+            }
+        });
+        jMenu7.add(jMenuItem23);
+
+        jMenu6.add(jMenu7);
+
+        jMenu8.setLabel("Minimierung");
+
+        jMenuItem25.setLabel("Entfernen unerreichbarer Zustände");
+        jMenuItem25.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem25ActionPerformed(evt);
+            }
+        });
+        jMenu8.add(jMenuItem25);
+
+        jMenuItem28.setLabel("Unnötige Kanten entfernen");
+        jMenuItem28.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem28ActionPerformed(evt);
+            }
+        });
+        jMenu8.add(jMenuItem28);
+
+        jMenuItem26.setLabel("Entfernen von unproduktiven Zuständen");
+        jMenuItem26.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem26ActionPerformed(evt);
+            }
+        });
+        jMenu8.add(jMenuItem26);
+
+        jMenuItem27.setLabel("Minimieren (für DEAs)");
+        jMenuItem27.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem27ActionPerformed(evt);
+            }
+        });
+        jMenu8.add(jMenuItem27);
+
+        jMenu6.add(jMenu8);
+
+        jMenuItem24.setLabel("Potenzmengenkonstruktion (NEA->DEA)");
+        jMenuItem24.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem24ActionPerformed(evt);
+            }
+        });
+        jMenu6.add(jMenuItem24);
+
+        jMenuItem30.setText("Transformieren in dualen Automaten");
+        jMenuItem30.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem30ActionPerformed(evt);
+            }
+        });
+        jMenu6.add(jMenuItem30);
+
+        jMenuItem31.setText("Hotel California Zustand hinzufügen");
+        jMenuItem31.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem31ActionPerformed(evt);
+            }
+        });
+        jMenu6.add(jMenuItem31);
+
+        jMenuItem29.setLabel("Automat untersuchen");
+        jMenuItem29.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem29ActionPerformed(evt);
+            }
+        });
+        jMenu6.add(jMenuItem29);
+
+        jMenuBar1.add(jMenu6);
 
         jMenu5.setText("Abstandsautomaten");
 
@@ -404,18 +526,15 @@ public class Main extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(53, 53, 53))
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 790, Short.MAX_VALUE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 332, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(301, Short.MAX_VALUE))
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 557, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
@@ -435,52 +554,87 @@ public class Main extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         Graph g = ((GraphTab) jTabbedPane1.getSelectedComponent()).getGraph();
+        //Edge.setDefDirected(true);
         Vertex n = g.addVertex(new Point(200, 100));
         n.setFinal(true);
         n.setInitial(true);
-        n.setText("q_0");
+        n.setName("q_0");
         Vertex n2 = g.addVertex(new Point(5, 100));
-        n2.setText("q_1");
+        n2.setName("q_1");
         n2.setAutoWidth(true);
         
-        Edge e = g.addEdge(n, n2, false);
+        Edge e = g.addEdge(n, n2);
         e.getSupportPoints().add(new Point(125,90));
-        e.getTransitions().add("0");
-        e.setText(false);
+        if (g instanceof Fsm)
+        ((EdgeFsm)e).getTransitions().add("0");
+        e.setText();
         
-        e = g.addEdge(n2, n, false);
-        e.getSupportPoints().add(new Point(25,30));
-        e.getSupportPoints().add(new Point(320,30));
-        e.getSupportPoints().add(new Point(320,120));
-        e.setPathMode(PathMode.CUBIC_BEZIER);
-        e.getTransitions().add("1");
-        e.setText(false);
+        e = g.addEdge(n2, n);
+        //e.getSupportPoints().add(new Point(25,30));
+        //e.getSupportPoints().add(new Point(320,30));
+        //e.getSupportPoints().add(new Point(320,120));
+        e.setPathMode(Edge.PathMode.CUBIC_BEZIER);
+        if (g instanceof Fsm)
+        ((EdgeFsm)e).getTransitions().add("1");
+        e.setText();
         
-        e = g.addEdge(n, n, false);
-        e.getSupportPoints().add(new Point(210,160));
-        e.getSupportPoints().add(new Point(230,160));
-        e.getTransitions().add("1");
-        e.setText(false);
-        
+        e = g.addEdge(n, n);
+        //e.getSupportPoints().add(new Point(210,160));
+        //e.getSupportPoints().add(new Point(230,160));
+        if (g instanceof Fsm)
+        ((EdgeFsm)e).getTransitions().add("1");
+        e.setText();
         n = g.addVertex(new Point(100,220));
-        n.setText("o_ o");
-        e = g.addEdge(n, n, false);
+        n.setName("o_ o");
+        e = g.addEdge(n, n);
         e.getSupportPoints().add(new Point((int)n.getShape().getCenterX(),(int)(n.getShape().getY()+n.getShape().getHeight()-1)));
-        e = g.addEdge(n, n, false);
+        e = g.addEdge(n, n);
+          e.getSupportPoints().add(new Point((int)n.getShape().getCenterX()+10,(int)(n.getShape().getY()+n.getShape().getHeight()-10)));
         e.setDegOut(Edge.NORTH - 30);
         e.setDegIn(Edge.NORTH - 30);
-        e = g.addEdge(n, n, false);
+        e = g.addEdge(n, n);
+          e.getSupportPoints().add(new Point((int)n.getShape().getCenterX()-100,(int)(n.getShape().getY()+n.getShape().getHeight()-10)));
         e.setDegOut(Edge.NORTH + 30);
         e.setDegIn(Edge.NORTH + 30);
         g.notifyObs();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
-        (new Info(this, true)).setVisible(true);
+        JOptionPane.showMessageDialog(this, "<html><h1 align=\"center\">FSM</h1><ul>"
+                +"<p align=\"center\">Konstruktion und Simulation endlicher Automaten in Java"
+                +"<br>mit besonderer Berücksichtigung universeller Abstandsautomaten"
+                +"<br><br>Bachelorarbeit<br>am Institut für Theoretische Informatik"
+                +"<br>an der TU Braunschweig<br>Juni bis Oktober 2012"
+                +"<br><br>Konstantin Birker<br>Betreuer: Dr. Jürgen Koslowski</p>"
+                +"</html>", "Bedienung Graph", JOptionPane.PLAIN_MESSAGE);
     }//GEN-LAST:event_jMenuItem3ActionPerformed
 
     private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
-        (new InfoGraph(this,true)).setVisible(true);
+        JOptionPane.showMessageDialog(this, "<html><h3 style=\"margin:0;\">Zustände</h3><ul style=\"margin-top:0;margin-bottom:0\">"
+                +"<li><u>auswählen:</u> Linksklick</li>"
+                +"<li><u>neu:</u> Rechtsklick ins Leere</li>"
+                +"<li><u>löschen:</u> Auswählen, Entf drücken</li>"
+                +"<li><u>verschieben:</u> Links Drag</li>"
+                +"<li><u>Start-/Endzustand durchschalten:</u> Mittelklick</li>"
+                +"<li><u>beschriften:</u> Auswählen, Tastatureingabe (Backspace/Rücktaste zum Löschen)</li>"
+                +"</ul><h3 style=\"margin:0;\">Kanten</h3><ul style=\"margin-top:0;margin-bottom:0\">"
+                +"<li><u>auswählen:</u> Linksklick</li>"
+                +"<li><u>neu:</u> Startknoten auswählen, Rechtsklick auf den Zielknoten</li>"
+                +"<li><u>löschen:</u> Auswählen, Entf drücken</li>"
+                +"<li><u>Ziel ändern:</u> Auswählen, Rechtsklick auf neuen Zielknoten</li>"
+                +"<li><u>Abrundung ändern:</u> Mittelklick (lineare, quadratische, kubische Bezierkurve)</li>"
+                +"<li><u>Übergang/Beschriftung ändern:</u> Auswählen, Tastatureingabe (Backspace/Rücktaste zum Löschen)</li>"
+                +"<li><u>Beschriftung verschieben:</u> Links Drag auf Beschriftung</li>"
+                +"<li><u>Beschriftungsrotation (de)aktivieren:</u> Mittelklick auf Beschriftung</li>"
+                +"<li>Hilfspunkte</li><ul style=\"margin-top:0;margin-bottom:0\">"
+                +"<li><u>neu:</u> Links Drag an gewünschter Stelle</li>"
+                +"<li><u>löschen:</u> Kante auswählen, Mittelklick auf Hilfspunkt</li>"
+                +"<li><u>verschieben:</u> Links Drag auf Hilfspunkt</li></ul>"
+                +"</ul><h3 style=\"margin:0;\">sonstiges</h3><ul style=\"margin-top:0;\">"
+                +"<li><u>neue Kante mit Knoten:</u> Rechts Drag vom Startknoten zum Zielknoten; existiert am Ziel keiner, wird er erstellt.</li>"
+                +"<li><u>nichts auswählen:</u> Linksklick ins Leere</li>"
+                +"<li><u>alles verschieben:</u> Rechts Drag im Leeren</li>"
+                +"</ul><i>Drag bedeutet klicken, nicht los lassen und ziehen.</i></html>", "Bedienung Graph", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
@@ -498,7 +652,7 @@ public class Main extends javax.swing.JFrame {
             try {
                 FileOutputStream fout = new FileOutputStream(fs.getSelectedFile());
                 ObjectOutputStream oos = new ObjectOutputStream(fout);
-                oos.writeObject(((GraphTab) jTabbedPane1.getSelectedComponent()).getGraph());
+                oos.writeObject(getSelectedGraph());
                 oos.close();
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(this, "Konnte die Datei nicht speichern", "Fehler beim Speichern", JOptionPane.ERROR_MESSAGE);
@@ -523,7 +677,7 @@ public class Main extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem6ActionPerformed
 
     private void jMenuItem7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem7ActionPerformed
-        Graph g = ((GraphTab) jTabbedPane1.getSelectedComponent()).getGraph();
+        Graph g = getSelectedGraph();
         g.alignVertices();
         g.notifyObs();
     }//GEN-LAST:event_jMenuItem7ActionPerformed
@@ -537,21 +691,12 @@ public class Main extends javax.swing.JFrame {
         jTabbedPane1.setSelectedIndex(jTabbedPane1.getComponentCount()-1);
     }//GEN-LAST:event_jMenuItem8ActionPerformed
 
-    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
-        if (((GraphTab) jTabbedPane1.getSelectedComponent()).getGraph() instanceof Fsm) {
-            Fsm fsm = (Fsm) ((GraphTab) jTabbedPane1.getSelectedComponent()).getGraph();
-            if (jTextField1.getText().length()>0) fsm.setAnySymbol(jTextField1.getText().charAt(0));
-            if (jTextField1.getText().length()>1) fsm.setElseSymbol(jTextField1.getText().charAt(1));
-            if (jTextField1.getText().length()>2) fsm.setEpsSymbol(jTextField1.getText().charAt(2));
-        }
-    }//GEN-LAST:event_jTextField1ActionPerformed
-
     private void jMenuItem11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem11ActionPerformed
         jTabbedPane1.remove(jTabbedPane1.getSelectedComponent());
     }//GEN-LAST:event_jMenuItem11ActionPerformed
 
     private void jMenuItem10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem10ActionPerformed
-        jTabbedPane1.add("Graph "+jTabbedPane1.getComponentCount(),new GraphTab(new Graph(false)));
+        jTabbedPane1.add("Graph "+jTabbedPane1.getComponentCount(),new GraphTab(new Graph()));
         jTabbedPane1.setSelectedIndex(jTabbedPane1.getComponentCount()-1);
     }//GEN-LAST:event_jMenuItem10ActionPerformed
 
@@ -565,8 +710,9 @@ public class Main extends javax.swing.JFrame {
             return;
         }
         if (k<0) return;
-        Fsm fsm = Fsm.distanceAutomaton(k, s, (evt.getSource()==jMenuItem12?0:1));
-        jTabbedPane1.add(((JMenuItem)evt.getSource()).getText()+" "+s+" ("+k+")",new GraphTab(fsm));
+        Fsm fsm = Fsm.distanceAutomaton(k, s, Fsm.DistanceType.getByNumber(evt.getSource()==jMenuItem12?0:1));
+        fsm.setName(((JMenuItem)evt.getSource()).getText()+" "+s+" ("+k+")");
+        jTabbedPane1.add(fsm.getName(),new GraphTab(fsm));
         fsm.notifyObs();
     }//GEN-LAST:event_jMenuItem12ActionPerformed
 
@@ -579,7 +725,8 @@ public class Main extends javax.swing.JFrame {
         }
         if (k<0) return;
         Fsm fsm = Fsm.uniHamming(k);
-        jTabbedPane1.add("univ. "+(jCheckBoxMenuItem3.isSelected()?"det. ":"")+((JMenuItem)evt.getSource()).getText()+" ("+k+")",new GraphTab(fsm));
+        fsm.setName("univ. "+(jCheckBoxMenuItem3.isSelected()?"det. ":"")+((JMenuItem)evt.getSource()).getText()+" ("+k+")");
+        jTabbedPane1.add(fsm.getName(),new GraphTab(fsm));
         fsm.notifyObs();
     }//GEN-LAST:event_jMenuItem17ActionPerformed
 
@@ -592,7 +739,8 @@ public class Main extends javax.swing.JFrame {
         }
         if (k<0) return;
         Fsm fsm = Fsm.uniNLevenshtein(k);
-        jTabbedPane1.add("univ. "+(jCheckBoxMenuItem3.isSelected()?"det. ":"")+((JMenuItem)evt.getSource()).getText()+" ("+k+")",new GraphTab(fsm));
+        fsm.setName("univ. "+(jCheckBoxMenuItem3.isSelected()?"det. ":"")+((JMenuItem)evt.getSource()).getText()+" ("+k+")");
+        jTabbedPane1.add(fsm.getName(),new GraphTab(fsm));
         fsm.notifyObs();
     }//GEN-LAST:event_jMenuItem18ActionPerformed
 
@@ -603,6 +751,78 @@ public class Main extends javax.swing.JFrame {
             codingWindow.dispose();
         }
     }//GEN-LAST:event_jCheckBoxMenuItem4ActionPerformed
+
+    private void jMenuItem21ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem21ActionPerformed
+        ((Fsm) getSelectedGraph()).epsElimination(Fsm.EpsEliminationType.FROM_LEFT);
+        getSelectedGraph().notifyObs();
+    }//GEN-LAST:event_jMenuItem21ActionPerformed
+
+    private void jMenuItem22ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem22ActionPerformed
+        ((Fsm) getSelectedGraph()).epsElimination(Fsm.EpsEliminationType.FROM_RIGHT);
+        getSelectedGraph().notifyObs();
+    }//GEN-LAST:event_jMenuItem22ActionPerformed
+
+    private void jMenuItem23ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem23ActionPerformed
+        ((Fsm) getSelectedGraph()).epsElimination(Fsm.EpsEliminationType.FROM_BOTH);
+        getSelectedGraph().notifyObs();
+    }//GEN-LAST:event_jMenuItem23ActionPerformed
+
+    private void jMenuItem25ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem25ActionPerformed
+        ((Fsm) getSelectedGraph()).removeUnreachableStates();
+        getSelectedGraph().notifyObs();
+    }//GEN-LAST:event_jMenuItem25ActionPerformed
+
+    private void jMenuItem28ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem28ActionPerformed
+        ((Fsm) getSelectedGraph()).removeUnnecessaryEdges();
+        getSelectedGraph().notifyObs();
+    }//GEN-LAST:event_jMenuItem28ActionPerformed
+
+    private void jMenuItem26ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem26ActionPerformed
+        ((Fsm) getSelectedGraph()).removeUnproductiveStates();
+        getSelectedGraph().notifyObs();
+    }//GEN-LAST:event_jMenuItem26ActionPerformed
+
+    private void jMenuItem27ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem27ActionPerformed
+        ((Fsm) getSelectedGraph()).minimize();
+        getSelectedGraph().notifyObs();
+    }//GEN-LAST:event_jMenuItem27ActionPerformed
+
+    private void jMenuItem24ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem24ActionPerformed
+        Fsm fsm = ((Fsm) getSelectedGraph()).powersetAutomaton();
+        fsm.setName("Potenzmengenautomat");
+        jTabbedPane1.add("Potenzmengenautomat",new GraphTab(fsm));
+        fsm.notifyObs();
+    }//GEN-LAST:event_jMenuItem24ActionPerformed
+
+    private void jMenuItem30ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem30ActionPerformed
+        ((Fsm) getSelectedGraph()).transformToDualAutomaton();
+        getSelectedGraph().notifyObs();
+    }//GEN-LAST:event_jMenuItem30ActionPerformed
+
+    private void jMenuItem31ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem31ActionPerformed
+        ((Fsm) getSelectedGraph()).addHCZ(true);
+        getSelectedGraph().notifyObs();
+    }//GEN-LAST:event_jMenuItem31ActionPerformed
+
+    private void jMenuItem29ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem29ActionPerformed
+        boolean dea = ((Fsm) getSelectedGraph()).isDeterministic();
+        boolean complete = ((Fsm) getSelectedGraph()).isComplete();
+        boolean spontanious = ((Fsm) getSelectedGraph()).isSpontanious();
+        //int blocksize = 0;
+        String alpha = ((Fsm) getSelectedGraph()).calcAlphabethString(true);
+        JOptionPane.showMessageDialog(this, "<html>Der Automat A = \u3008Q, X, &delta;, I, F\u3009 ist ein "+(complete?"v":"")+(dea?"DEA":"NEA")
+                +(spontanious?" mit spontanten Übergängen.":" ohne spontane Übergänge.")
+                +"<br>Zustände Q: {"+Fsm.getPowersetName(new HashSet<Vertex>(((Fsm) getSelectedGraph()).getVertices()))+"}"
+                +"<br>Anzahl Zustände |Q|: "+((Fsm) getSelectedGraph()).getVertices().size()
+                +"<br>minimales Alphabet X: {"+alpha+"}"
+                +"<br>Startzustände I: {"+Fsm.getPowersetName(((Fsm) getSelectedGraph()).getInitialStates()) +"}"
+                +"<br>Endzustände F: {"+Fsm.getPowersetName(((Fsm) getSelectedGraph()).getFinalStates())+"}"
+                +"</html>", "Automateneigenschaften", JOptionPane.INFORMATION_MESSAGE);
+    }//GEN-LAST:event_jMenuItem29ActionPerformed
+
+    private void jCheckBoxMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItem5ActionPerformed
+        Edge.setAutoSP(jCheckBoxMenuItem5.isSelected());
+    }//GEN-LAST:event_jCheckBoxMenuItem5ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -619,15 +839,20 @@ public class Main extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem1;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem2;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem3;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem4;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem5;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu4;
     private javax.swing.JMenu jMenu5;
+    private javax.swing.JMenu jMenu6;
+    private javax.swing.JMenu jMenu7;
+    private javax.swing.JMenu jMenu8;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem10;
@@ -642,7 +867,18 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem19;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem20;
+    private javax.swing.JMenuItem jMenuItem21;
+    private javax.swing.JMenuItem jMenuItem22;
+    private javax.swing.JMenuItem jMenuItem23;
+    private javax.swing.JMenuItem jMenuItem24;
+    private javax.swing.JMenuItem jMenuItem25;
+    private javax.swing.JMenuItem jMenuItem26;
+    private javax.swing.JMenuItem jMenuItem27;
+    private javax.swing.JMenuItem jMenuItem28;
+    private javax.swing.JMenuItem jMenuItem29;
     private javax.swing.JMenuItem jMenuItem3;
+    private javax.swing.JMenuItem jMenuItem30;
+    private javax.swing.JMenuItem jMenuItem31;
     private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JMenuItem jMenuItem5;
     private javax.swing.JMenuItem jMenuItem6;
@@ -655,7 +891,6 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JPopupMenu.Separator jSeparator4;
     private javax.swing.JPopupMenu.Separator jSeparator5;
     private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JMenu mLooknFeel;
     // End of variables declaration//GEN-END:variables
 

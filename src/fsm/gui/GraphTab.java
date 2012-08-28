@@ -7,9 +7,9 @@ package fsm.gui;
 import fsm.Fsm;
 import fsm.Graph;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 
@@ -19,13 +19,18 @@ import javax.swing.JTabbedPane;
  * @author Konnarr
  */
 public class GraphTab extends JPanel {
+    private static final long serialVersionUID = 1L;
     private Graph g;
     private GraphPanel graph;
+    private ObjectInspector oi;
     private SimulationPanel sim;
     
     public GraphTab(Graph g) {
         this.g = g;
         setLayout(new BorderLayout());
+        oi = new ObjectInspector(g);
+        g.addObserver(oi);
+        JSplitPane sp2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,true,new JScrollPane(oi),null);
         graph = new GraphPanel(g);
         g.addObserver(graph);
         JTabbedPane tp = new JTabbedPane();
@@ -37,10 +42,14 @@ public class GraphTab extends JPanel {
             Fsm fsm = (Fsm) g;
             sim = new SimulationPanel(fsm);
             JSplitPane sp = new JSplitPane(JSplitPane.VERTICAL_SPLIT,true,sim,tp);
-            add(sp);
+            //add(sp);
+            sp2.setRightComponent(sp);
         } else {
-            add(tp);
+            //add(tp);
+            sp2.setRightComponent(tp);
         }
+        add(sp2);
+        sp2.setDividerLocation(200);
     }
 
     public Graph getGraph() {
@@ -53,6 +62,10 @@ public class GraphTab extends JPanel {
 
     public SimulationPanel getSimPanel() {
         return sim;
+    }
+    
+    public ObjectInspector getObjectInspector() {
+        return oi;
     }
 
 }

@@ -26,9 +26,10 @@ import javax.swing.JOptionPane;
  * @author Konnarr
  */
 public class SimulationPanel extends javax.swing.JPanel {
+    private static final long serialVersionUID = 1L;
 
     private Fsm fsm;
-    private DefaultListModel lm = new DefaultListModel();
+    private DefaultListModel<String> lm = new DefaultListModel<String>();
     
     /** Creates new form Simulation */
     public SimulationPanel(Fsm fsm) {
@@ -73,14 +74,16 @@ public class SimulationPanel extends javax.swing.JPanel {
             }
         });
 
-        jButton2.setText("starte Simulation");
+        jButton2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fsm/gui/icons/beginning.png"))); // NOI18N
+        jButton2.setToolTipText("zum Beginn der Simulation");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
             }
         });
 
-        jButton3.setText("nächster Schritt");
+        jButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fsm/gui/icons/next.png"))); // NOI18N
+        jButton3.setToolTipText("Schritt vorwärts");
         jButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton3ActionPerformed(evt);
@@ -89,21 +92,24 @@ public class SimulationPanel extends javax.swing.JPanel {
 
         jLabel1.setText(" ");
 
-        jButton4.setText("Simulation beenden");
+        jButton4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fsm/gui/icons/end.png"))); // NOI18N
+        jButton4.setToolTipText("ans Ende der Simulation");
         jButton4.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton4ActionPerformed(evt);
             }
         });
 
-        jButton5.setText("Simulation abbrechen");
+        jButton5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fsm/gui/icons/stop.png"))); // NOI18N
+        jButton5.setToolTipText("Simulation abbrechen");
         jButton5.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton5ActionPerformed(evt);
             }
         });
 
-        jButton6.setText("vorheriger Schritt");
+        jButton6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fsm/gui/icons/last.png"))); // NOI18N
+        jButton6.setToolTipText("Schritt zurück");
         jButton6.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton6ActionPerformed(evt);
@@ -137,36 +143,29 @@ public class SimulationPanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 624, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton1))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jButton2)
-                                    .addComponent(jCheckBox2))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jCheckBox1)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jSpinner1))
-                                    .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(6, 6, 6)
-                                .addComponent(jButton6)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton4)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton5))
-                            .addGroup(layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel1)))))
-                .addContainerGap())
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton1))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jCheckBox2, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jCheckBox1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jButton2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton6, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton5)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel1))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -177,19 +176,19 @@ public class SimulationPanel extends javax.swing.JPanel {
                     .addComponent(jButton1)
                     .addComponent(jLabel1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton2)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jButton3)
-                    .addComponent(jButton4)
+                    .addComponent(jButton4, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jButton5)
-                    .addComponent(jButton6))
+                    .addComponent(jButton6)
+                    .addComponent(jButton2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jCheckBox1)
                     .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jCheckBox2))
                 .addGap(6, 6, 6)
-                .addComponent(jScrollPane2)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 144, Short.MAX_VALUE)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -205,7 +204,7 @@ public class SimulationPanel extends javax.swing.JPanel {
 
     private String input = "";
     private int step;
-    private ArrayList<Vertex> calcNodes = new ArrayList();
+    private ArrayList<Vertex> calcNodes = new ArrayList<Vertex>();
     
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         fsm.startSim();
@@ -217,7 +216,7 @@ public class SimulationPanel extends javax.swing.JPanel {
         calcNodes.clear();
         for (Element e: fsm.getActive()) {
             if (e instanceof Vertex) {
-                lm.addElement("\u3008"+((Vertex)e).getText()+", "+input+/*"\u27e9 "*/"\u3009");
+                lm.addElement("\u3008"+((Vertex)e).getName()+", "+input+/*"\u27e9 "*/"\u3009");
                 calcNodes.add((Vertex)e);
             }
         }
@@ -228,8 +227,8 @@ public class SimulationPanel extends javax.swing.JPanel {
                     Vertex n = calcNodes.get(i);
                     if (n == e.getFrom()) {
                             calcNodes.add(e.getTo());
-                            lm.addElement((((String)lm.get(i)).replace(" \u2713", "").replace(" \u2717", ""))
-                                    + " \u22a6 \u3008"+e.getTo().getText()+", "
+                            lm.addElement((lm.get(i).replace(" \u2713", "").replace(" \u2717", ""))
+                                    + " \u22a6 \u3008"+e.getTo().getName()+", "
                                     +(jLabel1.getText().length()==0?"\u03B5":jLabel1.getText()) + "\u3009"
                                     +(jLabel1.getText().length()==0?(e.getTo().isFinal()?" \u2713":" \u2717"):""));
                         
@@ -252,7 +251,7 @@ public class SimulationPanel extends javax.swing.JPanel {
         //TODO: we can't handle varying blocksize!!!
         //there is serious trouble, because different calculations can be at different letters.
         step += Math.min((fsm.getBlocksize()==0?/*s.length()*/1:fsm.getBlocksize()), jLabel1.getText().length());
-        /*if (input.length()<step) jLabel1.setText("");
+        /*if (input.length()<step) jLabel1.setName("");
         else */jLabel1.setText(input.substring(step));
         //berechnung
         if (jCheckBox2.isSelected()) {
@@ -266,14 +265,14 @@ public class SimulationPanel extends javax.swing.JPanel {
                     if (n == e.getFrom()) {
                         if (processed[i]==true) { //copy
                             calcNodes.add(e.getTo());
-                            lm.addElement(((String)lm.get(i)).substring(0, ((String)lm.get(i)).lastIndexOf("\u22a6"))
-                                    + " \u22a6 \u3008"+e.getTo().getText()+", "
+                            lm.addElement(lm.get(i).substring(0, ((String)lm.get(i)).lastIndexOf("\u22a6"))
+                                    + " \u22a6 \u3008"+e.getTo().getName()+", "
                                     +(jLabel1.getText().length()==0?"\u03B5":jLabel1.getText()) + "\u3009"
                                     +(jLabel1.getText().length()==0?(e.getTo().isFinal()?" \u2713":" \u2717"):""));
                         } else {
                             calcNodes.set(i, e.getTo());
                             processed[i] = true;
-                            lm.set(i, lm.get(i) + " \u22a6 \u3008"+e.getTo().getText()+", "
+                            lm.set(i, lm.get(i) + " \u22a6 \u3008"+e.getTo().getName()+", "
                                     +(jLabel1.getText().length()==0?"\u03B5":jLabel1.getText()) + "\u3009"
                                     +(jLabel1.getText().length()==0?(e.getTo().isFinal()?" \u2713":" \u2717"):""));
                         }
@@ -296,7 +295,7 @@ public class SimulationPanel extends javax.swing.JPanel {
                             if (n == e.getTo()) continue;
                             calcNodes.add(e.getTo());
                             lm.addElement((((String)lm.get(i)).replace(" \u2713", "").replace(" \u2717", "")) //alte berechnung ohne haken/kreuz
-                                    + " \u22a6 \u3008"+e.getTo().getText()+", " //neuer schritt knoten
+                                    + " \u22a6 \u3008"+e.getTo().getName()+", " //neuer schritt knoten
                                     +(jLabel1.getText().length()==0?"\u03B5":jLabel1.getText()) + "\u3009" //rest text bzw. epsilon
                                     +(jLabel1.getText().length()==0?(e.getTo().isFinal()?" \u2713":" \u2717"):"")); //haken/kreuz für akzeptanz
                         

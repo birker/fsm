@@ -11,6 +11,7 @@
 package fsm.gui;
 
 import fsm.Edge;
+import fsm.EdgeFsm;
 import fsm.Element;
 import fsm.Fsm;
 import fsm.Graph;
@@ -21,6 +22,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
@@ -37,12 +39,14 @@ import java.util.Observer;
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 
 /**
  *
  * @author Konnarr
  */
 public class GraphPanel extends JComponent implements Observer {
+    private static final long serialVersionUID = 1L;
 
     private Graph graph;
     private ArrayList<RectangularShape> sp = new ArrayList<RectangularShape>();
@@ -84,19 +88,19 @@ public class GraphPanel extends JComponent implements Observer {
             if (element.isLabelRot()) {
                 g2d.rotate(element.getLabelRotDeg());
                 if (element.getFrom().getShape().getCenterX()>(element.getSupportPoints().isEmpty()?element.getTo().getShape().getCenterX():element.getSupportPoints().get(0).x))
-                g2d.translate(-element.getLabel().getWidth(), 0);
+                    g2d.translate(-element.getLabel().getWidth(), 0);
             }
             element.getLabel().paint(g);
             if (element.isLabelRot()) {
                 if (element.getFrom().getShape().getCenterX()>(element.getSupportPoints().isEmpty()?element.getTo().getShape().getCenterX():element.getSupportPoints().get(0).x))
-                g2d.translate(element.getLabel().getWidth(), 0);
+                    g2d.translate(element.getLabel().getWidth(), 0);
                 g2d.rotate(-element.getLabelRotDeg());
             }            
             g2d.translate(-element.getLabel().getX(), -element.getLabel().getY());
             g2d.fill(element.getPath(true));
             g2d.draw(element.getPath(false));
         }
-        for (Vertex element: graph.getVertices()) {      
+        for (Vertex element: graph.getVertices()) {
             //fill
             if (graph.getActive().contains(element)) {
                 g2d.setColor(Color.CYAN);
@@ -111,8 +115,10 @@ public class GraphPanel extends JComponent implements Observer {
             //border
             if (graph.getChoice() == element) {
                 g2d.setColor(Color.red);
+                element.getLabel().setForeground(Color.red);
             } else {
                 g2d.setColor(element.getColor());
+                element.getLabel().setForeground(element.getColor());
             }
             g2d.draw(element.getShape());
             
@@ -132,10 +138,15 @@ public class GraphPanel extends JComponent implements Observer {
             AttributedString as1 = new AttributedString("1234567890");
             as1.addAttribute(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUPER, 5, 7);
             g2d.drawString(as1.getIterator(), 15, 60);*/
-            
-            g2d.translate(element.getShape().getX(), element.getShape().getY());
-            element.getLabel().paint(g);
-            g2d.translate(-element.getShape().getX(), -element.getShape().getY());
+            //if (element.isLabelOutside()) {
+                g2d.translate(element.getLabel().getX(), element.getLabel().getY());
+                element.getLabel().paint(g);
+                g2d.translate(-element.getLabel().getX(), -element.getLabel().getY());
+            //} else {
+            //    g2d.translate(element.getShape().getX(), element.getShape().getY());
+            //    element.getLabel().paint(g);
+            //    g2d.translate(-element.getShape().getX(), -element.getShape().getY());
+            //}
         }
         if (graph.getChoice() instanceof Edge) {
             //draw Support Points
@@ -201,7 +212,7 @@ public class GraphPanel extends JComponent implements Observer {
         if (graph.getChoice() instanceof Edge) {
             sp.clear();
             for (Point p: ((Edge)graph.getChoice()).getSupportPoints()) {
-                sp.add(new Rectangle2D.Double(p.x-2, p.y-2, 4, 4));
+                sp.add(new Rectangle.Double(p.x-2.5, p.y-2.5, 5, 5));
             }
         }
     }
@@ -221,6 +232,9 @@ public class GraphPanel extends JComponent implements Observer {
             public void mousePressed(java.awt.event.MouseEvent evt) {
                 formMousePressed(evt);
             }
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                formMouseReleased(evt);
+            }
         });
         addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
             public void mouseDragged(java.awt.event.MouseEvent evt) {
@@ -235,19 +249,48 @@ public class GraphPanel extends JComponent implements Observer {
     }// </editor-fold>//GEN-END:initComponents
     private Point mouseStart;
     private Element mouseElement;
+    private Object moveElement;
 
+    private JLabel hitLabel() {
+        Edge element = (Edge) mouseElement;
+        Shape s;
+        if (element.isLabelRot()) {
+            AffineTransform af = AffineTransform.getRotateInstance(element.getLabelRotDeg(),element.getLabel().getX(),element.getLabel().getY());
+            if (element.getFrom().getShape().getCenterX()>(element.getSupportPoints().isEmpty()?element.getTo().getShape().getCenterX():element.getSupportPoints().get(0).x))
+                af.translate(-element.getLabel().getWidth(), 0);
+
+            s = af.createTransformedShape(element.getLabel().getBounds());
+        } else {
+            s = element.getLabel().getBounds();
+        }                
+        if (s.contains(mouseStart)) {
+               return element.getLabel();
+        }
+        return null;
+    }
+    
+    private Point hitSupportPoint() {
+        int nr = 0;
+        for (RectangularShape t: sp) {
+            if (t.contains(mouseStart)) {
+                return ((Edge) mouseElement).getSupportPoints().get(nr);
+            }
+            nr++;
+        }
+        return null;
+    }
+    
     private void formMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseClicked
-        requestFocusInWindow();
         if (evt.getButton() == MouseEvent.BUTTON1) {
             //choose
             graph.setChoice(mouseElement);
         } else if (evt.getButton() == MouseEvent.BUTTON3) {
             if (mouseElement == null) { 
                 //New State
-                graph.setChoice(graph.addVertex(evt.getPoint()));
+                graph.setChoice(graph.addVertex(new Point(evt.getPoint().x-(int)graph.getDefVertexShape().getWidth()/2,evt.getPoint().y-(int)graph.getDefVertexShape().getHeight()/2)));
             } else if (mouseElement instanceof Vertex && graph.getChoice() instanceof Vertex) { 
                 //new Edge
-                graph.setChoice(graph.addEdge((Vertex) graph.getChoice(), (Vertex) mouseElement, true));
+                graph.setChoice(graph.addEdge((Vertex) graph.getChoice(), (Vertex) mouseElement));
             } else if (mouseElement instanceof Vertex && graph.getChoice() instanceof Edge) { 
                 //move Edge
                 ((Edge) graph.getChoice()).setTo((Vertex) mouseElement);
@@ -255,7 +298,7 @@ public class GraphPanel extends JComponent implements Observer {
             }
         } else if (evt.getButton() == MouseEvent.BUTTON2) {
             graph.setChoice(mouseElement);
-            //change init/final-status of node
+            //change init/final-status of vertex
             if (mouseElement instanceof Vertex) {
                 Vertex n = (Vertex) mouseElement;
                 if (!n.isFinal() && !n.isInitial()) {
@@ -271,27 +314,27 @@ public class GraphPanel extends JComponent implements Observer {
             } else if (mouseElement instanceof Edge) {
                 Edge element = (Edge) mouseElement;
                 //search supportpoint and delete it if found.
-                int nr = 0;
-                boolean found = false;
-                for (RectangularShape s: sp) {
-                    if (s.contains(mouseStart)) {
-                        found = true;
-                        element.getSupportPoints().remove(nr);
-                        element.rebuildPath();
-                        break;
-                    }
-                    nr++;
-                }
-                //change pathmode
-                if (!found) {
-                    element.setPathMode(element.getPathMode().getNext());
+                moveElement = hitSupportPoint();
+                if (moveElement != null) {
+                    element.getSupportPoints().remove((Point)moveElement);
                     element.rebuildPath();
+                } else {
+                    //search Label and change rotation if found
+                    moveElement = hitLabel();
+                    if (moveElement != null) {
+                        element.setLabelRot(!element.isLabelRot());
+                        element.repositionLabel();
+                    } else {
+                        //change pathmode
+                        element.rebuildPath();
+                        element.setPathMode(element.getPathMode().getNext());
+                    }
                 }
             }
             
         }
         setSP();
-        graph.notifyObs();//repaint();
+        graph.notifyObs();
     }//GEN-LAST:event_formMouseClicked
 
     private void formMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseDragged
@@ -300,71 +343,70 @@ public class GraphPanel extends JComponent implements Observer {
                 //move Node
                 graph.setChoice(mouseElement);
                 Vertex element = (Vertex) mouseElement;
-                element.getShape().setFrame(element.getShape().getX() + evt.getX() - mouseStart.getX(), element.getShape().getY() + evt.getY() - mouseStart.getY(), element.getShape().getWidth(), element.getShape().getHeight());
-                mouseStart = evt.getPoint();
-                for (Edge e: graph.getEdges()) {
-                    if (e.getFrom() == graph.getChoice() || e.getTo() == graph.getChoice()) {
-                        e.rebuildPath();
+                if (moveElement == null && element.isLabelOutside()) {
+                    if (element.getLabel().contains(evt.getPoint())) moveElement = element.getLabel();
+                }
+                if (moveElement instanceof JLabel) {
+                    element.getLabel().setBounds((int) (element.getLabel().getX() + evt.getX() - mouseStart.getX()), (int)(element.getLabel().getY() + evt.getY() - mouseStart.getY()), element.getLabel().getWidth(), element.getLabel().getHeight());
+                }
+                if (moveElement == null) {
+                    moveElement = element.getShape();
+                }
+                if (moveElement instanceof Shape) {
+                    element.getShape().setFrame(element.getShape().getX() + evt.getX() - mouseStart.getX(), element.getShape().getY() + evt.getY() - mouseStart.getY(), element.getShape().getWidth(), element.getShape().getHeight());
+                    element.updateLabel();
+                    for (Edge e: graph.getEdges()) {
+                        if (e.getFrom() == graph.getChoice() || e.getTo() == graph.getChoice()) {
+                            e.rebuildPath();
+                        }
                     }
                 }
+                mouseStart = evt.getPoint();
             } else if (mouseElement instanceof Edge) {
                 graph.setChoice(mouseElement);
                 Edge element = (Edge) mouseElement;
                 //move Label
-                if (element.getLabel().getBounds().contains(mouseStart)) {
-                    element.getLabel().setLocation((int)(element.getLabel().getX() + evt.getX() - mouseStart.getX()), (int)(element.getLabel().getY() + evt.getY() - mouseStart.getY()));
-                    mouseStart = evt.getPoint();
-                } else {
-                    //move supportpoint
-                    boolean found = false;
+                if (moveElement == null) {//search label
+                    moveElement = hitLabel();
+                }
+                if (moveElement instanceof JLabel) {
+                    ((JLabel)moveElement).setLocation((int)(element.getLabel().getX() + evt.getX() - mouseStart.getX()), (int)(element.getLabel().getY() + evt.getY() - mouseStart.getY()));
+                }
+                //move SupportPoint
+                if (moveElement == null) { //search SupportPoint
+                    moveElement = hitSupportPoint();
+                }
+                if (moveElement instanceof Point) {//supportpoint to move
+                    ((Point)moveElement).translate((int)(evt.getX() - mouseStart.getX()), (int)(evt.getY() - mouseStart.getY()));
+                    element.rebuildPath();
+                }
+                //Create Supportpoint
+                if (moveElement == null) {//create SupportPoint
                     int nr = 0;
-                    for (RectangularShape s: sp) {
-                        if (s.contains(mouseStart)) {
-                            found = true;
-                            element.getSupportPoints().get(nr).translate((int)(evt.getX() - mouseStart.getX()), (int)(evt.getY() - mouseStart.getY()));
-                            element.rebuildPath();
-                            break;
-                        }
-                        nr++;
-                    }
-                    if (!found) {
-                        //add new support point
-                        nr = 0;
-                        int nrsmallest = 0;
-                        double distancesmallest = Double.MAX_VALUE;
-                        Point2D p = new Point2D.Double(element.getFrom().getShape().getCenterX(),element.getFrom().getShape().getCenterY());
-                        for (Point2D p2: element.getSupportPoints()) {
-                            double distance = Line2D.ptSegDist(p.getX(), p.getY(), p2.getX(), p2.getY(), evt.getX(), evt.getY());
-                            if (distance < distancesmallest) {
-                                distancesmallest = distance;
-                                nrsmallest = nr;
-                            }
-                            p = p2;
-                            nr++;
-                        }
-                        Point2D p2 = new Point2D.Double(element.getTo().getShape().getCenterX(),element.getTo().getShape().getCenterY());
+                    int nrsmallest = 0;
+                    double distancesmallest = Double.MAX_VALUE;
+                    Point2D p = new Point2D.Double(element.getFrom().getShape().getCenterX(),element.getFrom().getShape().getCenterY());
+                    for (Point2D p2: element.getSupportPoints()) {
                         double distance = Line2D.ptSegDist(p.getX(), p.getY(), p2.getX(), p2.getY(), evt.getX(), evt.getY());
                         if (distance < distancesmallest) {
                             distancesmallest = distance;
                             nrsmallest = nr;
                         }
-                        element.getSupportPoints().add(nrsmallest, evt.getPoint());
+                        p = p2;
+                        nr++;
                     }
-                    mouseStart = evt.getPoint();
+                    Point2D p2 = new Point2D.Double(element.getTo().getShape().getCenterX(),element.getTo().getShape().getCenterY());
+                    double distance = Line2D.ptSegDist(p.getX(), p.getY(), p2.getX(), p2.getY(), evt.getX(), evt.getY());
+                    if (distance < distancesmallest) {
+                        nrsmallest = nr;
+                    }
+                    element.getSupportPoints().add(nrsmallest, evt.getPoint());
+                    moveElement = element.getSupportPoints().get(nrsmallest);
                 }
-            }if (mouseElement instanceof Vertex) {
-                //move Node
-                graph.setChoice(mouseElement);
-                Vertex element = (Vertex) mouseElement;
-                element.getShape().setFrame(element.getShape().getX() + evt.getX() - mouseStart.getX(), element.getShape().getY() + evt.getY() - mouseStart.getY(), element.getShape().getWidth(), element.getShape().getHeight());
                 mouseStart = evt.getPoint();
-                for (Edge e: graph.getEdges()) {
-                    if (e.getFrom() == graph.getChoice() || e.getTo() == graph.getChoice()) {
-                        e.rebuildPath();
-                    }
-                }
+            
             }
-            graph.notifyObs();//repaint();
+            graph.notifyObs();
             setSP();
         } else if (evt.getModifiers() == MouseEvent.BUTTON3_MASK) {
             if (mouseElement == null) {
@@ -372,6 +414,7 @@ public class GraphPanel extends JComponent implements Observer {
                 //move everything
                 for (Vertex element :graph.getVertices()) {
                     element.getShape().setFrame(element.getShape().getX()+evt.getX() - mouseStart.getX(), element.getShape().getY()+evt.getY() - mouseStart.getY(), element.getShape().getWidth(), element.getShape().getHeight());
+                    element.updateLabel();
                 }
                 for (Edge element: graph.getEdges()) {
                     element.getPath(true).transform(AffineTransform.getTranslateInstance(evt.getX() - mouseStart.getX(), evt.getY() - mouseStart.getY()));
@@ -382,27 +425,46 @@ public class GraphPanel extends JComponent implements Observer {
                     }
                 }
                 mouseStart = evt.getPoint();
-                graph.notifyObs();//repaint();
+                graph.notifyObs();
+            } else if (mouseElement instanceof Vertex) {
+                //create new floating edge
+                if (moveElement == null) {
+                    Vertex tmp = new Vertex(graph, new Rectangle2D.Double(0,0,10,10), evt.getPoint(), "");
+                    Edge e = graph.addEdge((Vertex)mouseElement, tmp);
+                    moveElement = e;
+                } else {
+                    ((Edge)moveElement).getTo().getShape().setFrame(evt.getX(), evt.getY(), 1, 1);
+                    ((Edge)moveElement).rebuildPath();
+                }
+                graph.notifyObs();
             }
         }
     }//GEN-LAST:event_formMouseDragged
 
     private void formMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMousePressed
+        requestFocusInWindow();
         mouseStart = evt.getPoint();
         mouseElement = null;
         if (graph.getChoice() instanceof Edge) {
             for (RectangularShape s: sp) {
-                if (s.contains(mouseStart)) mouseElement = graph.getChoice();
+                if (s.contains(mouseStart)) {
+                    mouseElement = graph.getChoice();
+                    return;
+                }
             }
         }
         for (Edge e: graph.getEdges()) {
-            if (e.hit(evt.getPoint(), 4) || e.getLabel().getBounds().contains(evt.getPoint())) {
-                mouseElement = e;
+            mouseElement = e;
+            moveElement = hitLabel();
+            if (!e.hit(evt.getPoint(), 4) && moveElement == null) mouseElement = null;
+            else {
+                moveElement = null;
                 return;
             }
         }
         for (Vertex n: graph.getVertices()) {
-            if (n.getShape().contains(evt.getPoint())) {
+            if (n.getShape().contains(evt.getPoint()) ||
+                    (n.isLabelOutside() && n.getLabel().contains(evt.getPoint()))) {
                 mouseElement = n;
                 return;
             }
@@ -415,8 +477,8 @@ public class GraphPanel extends JComponent implements Observer {
             if (evt.getKeyCode() == KeyEvent.VK_DELETE) {
                 graph.removeVertex(n);
             } else if (evt.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-                if (n.getText().length() > 0) {
-                    n.setText(n.getText().substring(0, n.getText().length() - 1));
+                if (n.getName().length() > 0) {
+                    n.setName(n.getName().substring(0, n.getName().length() - 1));
                     if (n.isAutoWidth()) {
                     for (Edge e: graph.getEdges()) {
                             if (e.getFrom() == graph.getChoice() || e.getTo() == graph.getChoice()) {
@@ -426,7 +488,7 @@ public class GraphPanel extends JComponent implements Observer {
                     }
                 }
             } else if (evt.getKeyChar() != KeyEvent.CHAR_UNDEFINED && evt.getKeyChar() >= KeyEvent.VK_SPACE) {
-                n.setText(n.getText() + evt.getKeyChar());
+                n.setName(n.getName() + evt.getKeyChar());
                     if (n.isAutoWidth()) {
                         for (Edge e: graph.getEdges()) {
                             if (e.getFrom() == graph.getChoice() || e.getTo() == graph.getChoice()) {
@@ -440,24 +502,44 @@ public class GraphPanel extends JComponent implements Observer {
             if (evt.getKeyCode() == KeyEvent.VK_DELETE) {
                 graph.removeEdge(e);
             } else if (evt.getKeyChar() != KeyEvent.CHAR_UNDEFINED && evt.getKeyChar() >= KeyEvent.VK_SPACE){
-                if (graph instanceof  Fsm) {
-                    if (e.getTransitions().contains("" + evt.getKeyChar())) {
-                        e.getTransitions().remove("" + evt.getKeyChar());
+                if (e instanceof  EdgeFsm) {
+                    if (((EdgeFsm)e).getTransitions().contains("" + evt.getKeyChar())) {
+                        ((EdgeFsm)e).getTransitions().remove("" + evt.getKeyChar());
                     } else {
-                        e.getTransitions().add("" + evt.getKeyChar());
+                        ((EdgeFsm)e).getTransitions().add("" + evt.getKeyChar());
                     }
-                    e.setText(false);
+                    e.setText();
                 } else {
-                    e.setText(e.getText()+evt.getKeyChar());
+                    e.setName(e.getName()+evt.getKeyChar());
                 }
                 e.repositionLabel();
             } else if (evt.getKeyChar() == KeyEvent.VK_BACK_SPACE && !(graph instanceof Fsm)) {
                 if (e.getText().length() > 0) 
-                    e.setText(e.getText().substring(0, e.getText().length() - 1));
+                    e.setName(e.getName().substring(0, e.getText().length() - 1));
             }
         } else return;
         graph.notifyObs();
     }//GEN-LAST:event_formKeyPressed
+
+    private void formMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseReleased
+        if (moveElement instanceof Edge) {//floating edge
+            mouseElement = null;
+            for (Vertex n: graph.getVertices()) {
+                if (n.getShape().contains(evt.getPoint())) {
+                    mouseElement = n;
+                    break;
+                }
+            }
+            if (mouseElement == null) {
+                mouseElement = graph.addVertex(new Point(evt.getPoint().x-(int)graph.getDefVertexShape().getWidth()/2,evt.getPoint().y-(int)graph.getDefVertexShape().getHeight()/2));
+            }
+            ((Edge)moveElement).setTo((Vertex) mouseElement);
+            ((Edge)moveElement).rebuildPath();
+            graph.setChoice(((Edge)moveElement));
+            graph.notifyObs();
+        }        
+        moveElement = null;        
+    }//GEN-LAST:event_formMouseReleased
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
