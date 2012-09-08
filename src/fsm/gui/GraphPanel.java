@@ -55,19 +55,21 @@ public class GraphPanel extends JComponent implements Observer {
     /** Creates new form Graph */
     public GraphPanel(Graph graph) {
         this.graph = graph;
-        setLayout(null);
+        //setLayout(null);
         setFocusable(true);
-        setOpaque(false);
+        //setOpaque(false);
         initComponents();
         
     }
     
     @Override
     protected void paintComponent(Graphics g) {
+        //super.paint(g);
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.translate(translate.x, translate.y);
         for (Edge element: graph.getEdges()) {
+            if (element.getIndex() > graph.getIndex()) continue;
             if (element.getPath(false)==null) element.rebuildPath();
             //if (element.getLabel().getParent()==null)
             //add(element.getLabel()); bÃ¶se idee, er macht damit ein repaint nach dem anderen
@@ -99,8 +101,16 @@ public class GraphPanel extends JComponent implements Observer {
             g2d.translate(-element.getLabel().getX(), -element.getLabel().getY());
             g2d.fill(element.getPath(true));
             g2d.draw(element.getPath(false));
+            if (graph.getChoice() == element) {
+                //draw Support Points
+                g2d.setColor(Color.blue);
+                for (RectangularShape s: sp) {
+                    g2d.fill(s);
+                }
+            }
         }
         for (Vertex element: graph.getVertices()) {
+            if (element.getIndex() > graph.getIndex()) continue;
             //fill
             if (graph.getActive().contains(element)) {
                 g2d.setColor(Color.CYAN);
@@ -108,7 +118,7 @@ public class GraphPanel extends JComponent implements Observer {
             } else if (graph instanceof Fsm && ((Fsm)graph).getActiveEps().contains(element)) {
                 g2d.setColor(Color.MAGENTA);
                 g2d.fill(element.getShape());                
-            } else if (element.isFillNode()) {
+            } else if (element.isFillVertex()) {
               g2d.setColor(element.getFillColor());
               g2d.fill(element.getShape());
             }
@@ -148,13 +158,8 @@ public class GraphPanel extends JComponent implements Observer {
             //    g2d.translate(-element.getShape().getX(), -element.getShape().getY());
             //}
         }
-        if (graph.getChoice() instanceof Edge) {
-            //draw Support Points
-            g2d.setColor(Color.blue);
-            for (RectangularShape s: sp) {
-                g2d.fill(s);
-            }
-        }
+        
+        jLabel1.paint(g);
 
     }
     
@@ -225,6 +230,8 @@ public class GraphPanel extends JComponent implements Observer {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jLabel1 = new javax.swing.JLabel();
+
         addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 formMouseClicked(evt);
@@ -246,9 +253,23 @@ public class GraphPanel extends JComponent implements Observer {
                 formKeyPressed(evt);
             }
         });
+
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jLabel1)
+        );
     }// </editor-fold>//GEN-END:initComponents
     private Point mouseStart;
     private Element mouseElement;
+    private Element lastElement;
     private Object moveElement;
 
     private JLabel hitLabel() {
@@ -281,10 +302,15 @@ public class GraphPanel extends JComponent implements Observer {
     }
     
     private void formMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseClicked
-        if (evt.getButton() == MouseEvent.BUTTON1) {
+        if (evt.getButton() == MouseEvent.BUTTON1 && evt.getClickCount() == 1) {
             //choose
+            lastElement = graph.getChoice();
             graph.setChoice(mouseElement);
-        } else if (evt.getButton() == MouseEvent.BUTTON3) {
+        }
+        if (evt.getButton() == MouseEvent.BUTTON3 || (evt.getClickCount() == 2 && evt.getButton() == MouseEvent.BUTTON1)) {
+            if ((evt.getClickCount() == 2 && evt.getButton() == MouseEvent.BUTTON1)) {
+                graph.setChoice(lastElement);
+            }
             if (mouseElement == null) { 
                 //New State
                 graph.setChoice(graph.addVertex(new Point(evt.getPoint().x-(int)graph.getDefVertexShape().getWidth()/2,evt.getPoint().y-(int)graph.getDefVertexShape().getHeight()/2)));
@@ -514,8 +540,8 @@ public class GraphPanel extends JComponent implements Observer {
                 }
                 e.repositionLabel();
             } else if (evt.getKeyChar() == KeyEvent.VK_BACK_SPACE && !(graph instanceof Fsm)) {
-                if (e.getText().length() > 0) 
-                    e.setName(e.getName().substring(0, e.getText().length() - 1));
+                if (e.getName().length() > 0) 
+                    e.setName(e.getName().substring(0, e.getName().length() - 1));
             }
         } else return;
         graph.notifyObs();
@@ -542,10 +568,13 @@ public class GraphPanel extends JComponent implements Observer {
     }//GEN-LAST:event_formMouseReleased
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
 
     @Override
     public void update(Observable o, Object arg) {
+        jLabel1.setText("<html>"+((graph.getChoice() == null)?graph.getComment():
+                (graph.getChoice() instanceof Vertex?((Vertex)graph.getChoice()).getComment():((Edge)graph.getChoice()).getComment()))+"</html>");
         repaint();
     }
 }

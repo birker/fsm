@@ -121,9 +121,9 @@ public class Fsm extends Graph {
        
     /////////////////////////Simulation/////////////////////////////////////////
     
-    /**
+    /* *
      * initialisizes the simulation process.
-     */
+     * /
     public void startSim() {
         getActive().clear();
         activeEps.clear();
@@ -136,21 +136,21 @@ public class Fsm extends Graph {
         //notifyObservers();
     }
     
-    /**
+    /* *
      * computes the next simulation step based on the active states and the remaining input
      * @param input the remaining input
      * @return true if the at least one active state is final independent from the remaining input.
-     */
+     * /
     public boolean nextStep(String input) {
         return nextStep(input, true);
     }
     
     /**
-     * checks if s1 is a valid transition for s2 with respect to shortSymbols
+     * checks if s1 is a valid transition for s2 with respect to blocks and shortSymbols
      * @param s1 the pattern
      * @param s2 the input
      * @return true if the transition s1 is valid for input s2
-     */
+     * /
     private boolean isEqual(String s1, String s2) {
         if (s1.length() != s2.length()) return false;
         letter: for (int i = 0; i < s1.length(); i++) {
@@ -221,7 +221,7 @@ public class Fsm extends Graph {
      * Checks, wether a String input is accepted by the automaton
      * @param input the string to be tested.
      * @return true, if the calculation ends in a final state.
-     */
+     * /
     public boolean accept(String input) {
         startSim();
         for (int i = 0; i < input.length()-blocksize; i += blocksize) {
@@ -231,8 +231,86 @@ public class Fsm extends Graph {
         boolean b = nextStep(input.substring((input.length() / blocksize)-1),true);
         getActive().clear();
         return b;
+    }*/
+    
+    private ArrayList<ArrayList<Configuration>> simulation = new ArrayList<ArrayList<Configuration>>();
+    
+    public  ArrayList<ArrayList<Configuration>> getSimulation() {
+        return simulation;
+    }
+    
+    public void startSimulation(String input) {
+        simulation.clear();
+        getActive().clear();
+        for (Vertex v: getVertices()) {
+            if (v.isInitial()) {
+                ArrayList<Configuration> al = new ArrayList<Configuration>();
+                al.add(new Configuration(this, v, input));
+                simulation.add(al);
+                getActive().add(v);
+            }
+        }
+    }
+    
+    /**
+     * Calculates the next step of the simulation
+     * @return true, if the simulation is ready (that means we didn't find a new configuration)
+     */
+    public boolean nextStep() {
+        boolean ready = true;
+        getActive().clear();          
+        for (ArrayList<Configuration> sim: (ArrayList<ArrayList<Configuration>>) simulation.clone()) {
+            Configuration c = sim.get(sim.size()-1);
+            ArrayList<Configuration> next = c.nextConfigurations();
+            if (next.isEmpty()) continue;      
+            simulation.remove(sim);
+            newconf: for (Configuration d: next) {
+                //we have to ensure, that the configuration doesnt close a spontanious ring
+                int i = sim.size()-1;
+                while (i>=0 && d.input.equals(sim.get(i).input)) {
+                    if (d.q == sim.get(i).q) {
+                        continue newconf;
+                    }
+                    i--;
+                }
+                ArrayList<Configuration> newSim = ((ArrayList<Configuration>) sim.clone());
+                newSim.add(d);
+                simulation.add(newSim);
+                getActive().add(d.q);
+                getActive().add(d.edge);
+                ready = false;
+            }
+        }
+        for (ArrayList<Configuration> sim: simulation) {
+            Configuration c = sim.get(sim.size()-1);
+            if (c.input.length() == 0)
+                getActive().add(c.q);
+        }                
+        return ready;
+    }
+    
+    public void previousStep() {
+        for (ArrayList<Configuration> sim: simulation) {
+            if (sim.size() > 1) {
+                sim.remove(sim.size()-1);
+            }
+        }
+        //remove duplicate entries.
+        simulation = new ArrayList<ArrayList<Configuration>>(new HashSet<ArrayList<Configuration>>(simulation));
     }
 
+    public boolean accept() {
+        for (ArrayList<Configuration> sim: simulation) {
+            Configuration c = sim.get(sim.size()-1);
+            if (c.input.length() == 0 && c.q.isFinal()) return true;
+        }
+        return false;
+    }
+    
+    public void stopSimulation() {
+        getActive().clear();
+        simulation.clear();
+    }
     ///////////////////////Dinstance Automata//////////////////////////////////
      
     /**
@@ -352,6 +430,7 @@ public class Fsm extends Graph {
                 n.setName("I"+(j==0?"":(j>0?"+"+j:j))+"^{"+i+"}");
                 n.setFinal(true);
                 EdgeFsm e = fsm.addEdge(n, n);
+                e.rebuildPath();
                 e.getTransitions().add(prepareString(distance).replace(j+distance, j+distance+1, "1").toString());
                 e.setText();
                 if (i>0) {
@@ -897,4 +976,23 @@ public class Fsm extends Graph {
         }
         return result;
     }
+
+    @Override
+    public int hashCode() {
+        int hash = this.getEdges().size()-this.getVertices().size();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Fsm other = (Fsm) obj;
+        return other == this;
+    }
+    
 }

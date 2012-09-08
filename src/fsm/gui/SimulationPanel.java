@@ -10,16 +10,21 @@
  */
 package fsm.gui;
 
+import fsm.Configuration;
 import fsm.Edge;
 import fsm.Element;
 import fsm.Fsm;
 import fsm.Vertex;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-import javax.swing.DefaultListModel;
+import javax.swing.AbstractListModel;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.ListCellRenderer;
 
 /**
  *
@@ -28,14 +33,62 @@ import javax.swing.JOptionPane;
 public class SimulationPanel extends javax.swing.JPanel {
     private static final long serialVersionUID = 1L;
 
+    class SimListRenderer extends JLabel implements ListCellRenderer<ArrayList<Configuration>> {
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public Component getListCellRendererComponent(JList<? extends ArrayList<Configuration>> list, ArrayList<Configuration> value, int index, boolean isSelected, boolean cellHasFocus) {
+            setOpaque(true);
+            if (isSelected) {
+                setBackground(list.getSelectionBackground());
+                setForeground(list.getSelectionForeground());
+            } else {
+                setBackground(list.getBackground());
+                setForeground(list.getForeground());
+            }
+            setText("");
+            if (value == null) return this;
+            for (Configuration c: value) {
+                setText((getText().length() == 0?"":getText()+" \u22a6 ")
+                            +"\u3008"+c.q.getName()+", "
+                            +(c.input.length()==0?"\u03B5":c.input) + "\u3009");
+            }
+            Configuration last = value.get(value.size()-1);
+            if (last.input.length() == 0) setText(getText()+(last.q.isFinal()?" \u2713":" \u2717"));
+            return this;
+        }
+        
+    }
+    
+    class SimListModel extends AbstractListModel<Object> {
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public int getSize() {
+            return fsm.getSimulation().size();
+        }
+
+        @Override
+        public Object getElementAt(int index) {
+            if (index < getSize() && index >= 0)
+                return fsm.getSimulation().get(index); 
+            return null;
+        }
+        
+        public void notifyNewElements() {
+            fireContentsChanged(this, 0, getSize()-1);
+        }
+        
+    }
+    
     private Fsm fsm;
-    private DefaultListModel<String> lm = new DefaultListModel<String>();
     
     /** Creates new form Simulation */
     public SimulationPanel(Fsm fsm) {
         this.fsm = fsm;
         initComponents();
     }
+    
 
     /** This method is called from within the constructor to
      * initialize the form.
@@ -46,73 +99,62 @@ public class SimulationPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jTextField1 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
-        jButton4 = new javax.swing.JButton();
-        jButton5 = new javax.swing.JButton();
-        jButton6 = new javax.swing.JButton();
+        texInput = new javax.swing.JTextField();
+        butBegin = new javax.swing.JButton();
+        butNext = new javax.swing.JButton();
+        butEnd = new javax.swing.JButton();
+        butStop = new javax.swing.JButton();
+        butPrev = new javax.swing.JButton();
         jCheckBox1 = new javax.swing.JCheckBox();
         jSpinner1 = new javax.swing.JSpinner();
         jScrollPane2 = new javax.swing.JScrollPane();
         jList2 = new javax.swing.JList();
-        jCheckBox2 = new javax.swing.JCheckBox();
+        jComboBox1 = new javax.swing.JComboBox();
 
-        jTextField1.setText("01");
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+        texInput.setText("01");
+        texInput.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
             }
         });
 
-        jButton1.setText("Eingabe testen");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        butBegin.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fsm/gui/icons/beginning.png"))); // NOI18N
+        butBegin.setToolTipText("Simulation starten bzw. zum Beginn der Simulation");
+        butBegin.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                butBeginActionPerformed(evt);
             }
         });
 
-        jButton2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fsm/gui/icons/beginning.png"))); // NOI18N
-        jButton2.setToolTipText("zum Beginn der Simulation");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        butNext.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fsm/gui/icons/next.png"))); // NOI18N
+        butNext.setToolTipText("Schritt vorwärts");
+        butNext.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                butNextActionPerformed(evt);
             }
         });
 
-        jButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fsm/gui/icons/next.png"))); // NOI18N
-        jButton3.setToolTipText("Schritt vorwärts");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        butEnd.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fsm/gui/icons/end.png"))); // NOI18N
+        butEnd.setToolTipText("ans Ende der Simulation");
+        butEnd.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                butEndActionPerformed(evt);
             }
         });
 
-        jLabel1.setText(" ");
-
-        jButton4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fsm/gui/icons/end.png"))); // NOI18N
-        jButton4.setToolTipText("ans Ende der Simulation");
-        jButton4.addActionListener(new java.awt.event.ActionListener() {
+        butStop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fsm/gui/icons/stop.png"))); // NOI18N
+        butStop.setToolTipText("Simulation abbrechen");
+        butStop.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton4ActionPerformed(evt);
+                butStopActionPerformed(evt);
             }
         });
 
-        jButton5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fsm/gui/icons/stop.png"))); // NOI18N
-        jButton5.setToolTipText("Simulation abbrechen");
-        jButton5.addActionListener(new java.awt.event.ActionListener() {
+        butPrev.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fsm/gui/icons/last.png"))); // NOI18N
+        butPrev.setToolTipText("Schritt zurück");
+        butPrev.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton5ActionPerformed(evt);
-            }
-        });
-
-        jButton6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fsm/gui/icons/last.png"))); // NOI18N
-        jButton6.setToolTipText("Schritt zurück");
-        jButton6.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton6ActionPerformed(evt);
+                butPrevActionPerformed(evt);
             }
         });
 
@@ -125,14 +167,19 @@ public class SimulationPanel extends javax.swing.JPanel {
 
         jSpinner1.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(5), Integer.valueOf(1), null, Integer.valueOf(1)));
 
-        jList2.setModel(lm);
+        jList2.setModel(new SimListModel());
+        jList2.setCellRenderer(new SimListRenderer());
+        jList2.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                jList2ValueChanged(evt);
+            }
+        });
         jScrollPane2.setViewportView(jList2);
 
-        jCheckBox2.setSelected(true);
-        jCheckBox2.setText("Berechnung");
-        jCheckBox2.addActionListener(new java.awt.event.ActionListener() {
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Eingabe simulieren", "Konstruktion simulieren", "ausgewählte Berechnung simulieren" }));
+        jComboBox1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBox2ActionPerformed(evt);
+                jComboBox1ActionPerformed(evt);
             }
         });
 
@@ -143,200 +190,172 @@ public class SimulationPanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 332, Short.MAX_VALUE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(texInput))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(butBegin, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(butPrev, javax.swing.GroupLayout.DEFAULT_SIZE, 61, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(butNext, javax.swing.GroupLayout.DEFAULT_SIZE, 61, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(butEnd, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(butStop, javax.swing.GroupLayout.DEFAULT_SIZE, 64, Short.MAX_VALUE)
+                                .addGap(0, 0, 0)))
+                        .addContainerGap())
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jCheckBox2, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jCheckBox1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jButton2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton6, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton5)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel1))
+                        .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1)
-                    .addComponent(jLabel1))
+                    .addComponent(texInput, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButton3)
-                    .addComponent(jButton4, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jButton5)
-                    .addComponent(jButton6)
-                    .addComponent(jButton2))
+                    .addComponent(butNext)
+                    .addComponent(butEnd, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(butStop)
+                    .addComponent(butPrev)
+                    .addComponent(butBegin))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jCheckBox1)
-                    .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jCheckBox2))
+                    .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(6, 6, 6)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 144, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 147, Short.MAX_VALUE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        if (fsm.accept(jTextField1.getText())) {
-                JOptionPane.showMessageDialog(this, "Der Automat akzeptiert die Eingabe \""+jTextField1.getText()+"\".", "Simulation", JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(this, "Der Automat akzeptiert die Eingabe \""+jTextField1.getText()+"\" nicht.", "Simulation", JOptionPane.WARNING_MESSAGE);
-
-            }
+        
     }//GEN-LAST:event_jButton1ActionPerformed
-
-    private String input = "";
-    private int step;
-    private ArrayList<Vertex> calcNodes = new ArrayList<Vertex>();
     
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        fsm.startSim();
-        input = jTextField1.getText();
-        step = 0;
-        jLabel1.setText(input);
-        if (jCheckBox2.isSelected()) {
-        lm.clear();
-        calcNodes.clear();
-        for (Element e: fsm.getActive()) {
-            if (e instanceof Vertex) {
-                lm.addElement("\u3008"+((Vertex)e).getName()+", "+input+/*"\u27e9 "*/"\u3009");
-                calcNodes.add((Vertex)e);
-            }
+    private int step = -1;
+    
+    private void butBeginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butBeginActionPerformed
+        if (jComboBox1.getSelectedIndex() == 0) {
+            fsm.startSimulation(texInput.getText());
+            ((SimListModel)jList2.getModel()).notifyNewElements();
+        } else if (jComboBox1.getSelectedIndex() == 1) {
+            fsm.setIndex(0);
+        } else {
+            fsm.getActive().clear();
+            step = 0;
+            Configuration c = ((ArrayList<Configuration>)jList2.getSelectedValue()).get(step);
+            fsm.getActive().add(c.q);
+            fsm.getActive().add(c.edge);
         }
-        for (Element element: fsm.getActiveEps()) {
-            if (element instanceof Edge) {
-                Edge e = (Edge) element;
-                for (int i = 0; i < calcNodes.size(); i++) {
-                    Vertex n = calcNodes.get(i);
-                    if (n == e.getFrom()) {
-                            calcNodes.add(e.getTo());
-                            lm.addElement((lm.get(i).replace(" \u2713", "").replace(" \u2717", ""))
-                                    + " \u22a6 \u3008"+e.getTo().getName()+", "
-                                    +(jLabel1.getText().length()==0?"\u03B5":jLabel1.getText()) + "\u3009"
-                                    +(jLabel1.getText().length()==0?(e.getTo().isFinal()?" \u2713":" \u2717"):""));
-                        
-                    }
-                }
-            }
-        }
-        }
-        fsm.notifyObs();
-    }//GEN-LAST:event_jButton2ActionPerformed
+        fsm.notifyObs();        
+    }//GEN-LAST:event_butBeginActionPerformed
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        if (input.length()==step) {
-            if (JOptionPane.showConfirmDialog(this, "Simulation neu starten?") == JOptionPane.OK_OPTION) {
-                jButton2ActionPerformed(evt);
-            } else return;
-        }
-        boolean b = fsm.nextStep(jLabel1.getText());
-        //step++;
-        //TODO: we can't handle varying blocksize!!!
-        //there is serious trouble, because different calculations can be at different letters.
-        step += Math.min((fsm.getBlocksize()==0?/*s.length()*/1:fsm.getBlocksize()), jLabel1.getText().length());
-        /*if (input.length()<step) jLabel1.setName("");
-        else */jLabel1.setText(input.substring(step));
-        //berechnung
-        if (jCheckBox2.isSelected()) {
-        boolean[] processed = new boolean[calcNodes.size()];
-        ArrayList<Vertex> origNodes = (ArrayList<Vertex>)calcNodes.clone();
-        for (Element element: fsm.getActive()) {
-            if (element instanceof Edge) {
-                Edge e = (Edge) element;
-                for (int i = 0; i < origNodes.size();i++) {
-                    Vertex n = origNodes.get(i);
-                    if (n == e.getFrom()) {
-                        if (processed[i]==true) { //copy
-                            calcNodes.add(e.getTo());
-                            lm.addElement(lm.get(i).substring(0, ((String)lm.get(i)).lastIndexOf("\u22a6"))
-                                    + " \u22a6 \u3008"+e.getTo().getName()+", "
-                                    +(jLabel1.getText().length()==0?"\u03B5":jLabel1.getText()) + "\u3009"
-                                    +(jLabel1.getText().length()==0?(e.getTo().isFinal()?" \u2713":" \u2717"):""));
+    private void butNextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butNextActionPerformed
+        if (jComboBox1.getSelectedIndex() == 0) {
+            if (fsm.getSimulation().isEmpty()) {
+                if (JOptionPane.showConfirmDialog(this, "Simulation neu starten?") == JOptionPane.OK_OPTION) {
+                    butBeginActionPerformed(evt);
+                } else return;
+            }
+            if (fsm.nextStep()) {
+                if (fsm.accept()) {
+                    JOptionPane.showMessageDialog(this, "Der Automat akzeptiert die Eingabe.", "Simulation", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Der Automat akzeptiert die Eingabe nicht.", "Simulation", JOptionPane.WARNING_MESSAGE);
+                }
+            }   
+            ((SimListModel)jList2.getModel()).notifyNewElements();
+        } else if (jComboBox1.getSelectedIndex() == 1) {
+            fsm.setIndex(fsm.getIndex()+1);
+        } else {
+            if (step < ((ArrayList<Configuration>)jList2.getSelectedValue()).size()-1) {
+                fsm.getActive().clear();
+                step++;
+                Configuration c = ((ArrayList<Configuration>)jList2.getSelectedValue()).get(step);
+                fsm.getActive().add(c.q);
+                fsm.getActive().add(c.edge);
+            } else {
+                for (Element e: (ArrayList<Element>) fsm.getActive().clone()) {
+                    if (e instanceof Edge) fsm.getActive().remove(e);
+                    else {
+                        if (((Vertex)e).isFinal()) {
+                            JOptionPane.showMessageDialog(this, "Die Berechnung ist akzeptierend.", "Simulation", JOptionPane.INFORMATION_MESSAGE);
                         } else {
-                            calcNodes.set(i, e.getTo());
-                            processed[i] = true;
-                            lm.set(i, lm.get(i) + " \u22a6 \u3008"+e.getTo().getName()+", "
-                                    +(jLabel1.getText().length()==0?"\u03B5":jLabel1.getText()) + "\u3009"
-                                    +(jLabel1.getText().length()==0?(e.getTo().isFinal()?" \u2713":" \u2717"):""));
+                            JOptionPane.showMessageDialog(this, "Die Berechnung ist nicht akzeptierend.", "Simulation", JOptionPane.WARNING_MESSAGE);
                         }
                     }
                 }
             }
         }
-        for (int i = 0; i < processed.length; i++) {
-            if (processed[i] == false && calcNodes.get(i)!=null) {
-                calcNodes.set(i, null);
-                lm.set(i, lm.get(i) + " \u22a6 \u22a5 \u2717");
-            }
-        }
-        for (Element element: fsm.getActiveEps()) {
-            if (element instanceof Edge) {
-                Edge e = (Edge) element;
-                for (int i = 0; i < calcNodes.size(); i++) {
-                    Vertex n = calcNodes.get(i);
-                    if (n == e.getFrom()) {
-                            if (n == e.getTo()) continue;
-                            calcNodes.add(e.getTo());
-                            lm.addElement((((String)lm.get(i)).replace(" \u2713", "").replace(" \u2717", "")) //alte berechnung ohne haken/kreuz
-                                    + " \u22a6 \u3008"+e.getTo().getName()+", " //neuer schritt knoten
-                                    +(jLabel1.getText().length()==0?"\u03B5":jLabel1.getText()) + "\u3009" //rest text bzw. epsilon
-                                    +(jLabel1.getText().length()==0?(e.getTo().isFinal()?" \u2713":" \u2717"):"")); //haken/kreuz für akzeptanz
-                        
-                    }
-                }
-            }
-        }
-        }
         fsm.notifyObs();
-        if (input.length()==step) {
-            if (b) {
+    }//GEN-LAST:event_butNextActionPerformed
+
+    private void butEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butEndActionPerformed
+        if (jComboBox1.getSelectedIndex() == 0) {
+            while (!fsm.nextStep()) {}
+            if (fsm.accept()) {
                 JOptionPane.showMessageDialog(this, "Der Automat akzeptiert die Eingabe.", "Simulation", JOptionPane.INFORMATION_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(this, "Der Automat akzeptiert die Eingabe nicht.", "Simulation", JOptionPane.WARNING_MESSAGE);
-
+            }
+            ((SimListModel)jList2.getModel()).notifyNewElements();
+        } else if (jComboBox1.getSelectedIndex() == 1) {
+            fsm.setIndex(Integer.MAX_VALUE);
+        } else {
+            fsm.getActive().clear();
+            step = ((ArrayList<Configuration>)jList2.getSelectedValue()).size() - 1;
+            Configuration c = ((ArrayList<Configuration>)jList2.getSelectedValue()).get(step);
+            fsm.getActive().add(c.q);
+            if (c.q.isFinal()) {
+                JOptionPane.showMessageDialog(this, "Die Berechnung ist akzeptierend.", "Simulation", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Die Berechnung ist nicht akzeptierend.", "Simulation", JOptionPane.WARNING_MESSAGE);
             }
         }
-    }//GEN-LAST:event_jButton3ActionPerformed
+        fsm.notifyObs();       
+    }//GEN-LAST:event_butEndActionPerformed
 
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        while (input.length()!=step) jButton3ActionPerformed(evt);
-    }//GEN-LAST:event_jButton4ActionPerformed
-
-    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
-        input = "";
-        step = 0;
-        jLabel1.setText("");
-        fsm.getActive().clear();
+    private void butStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butStopActionPerformed
+        if (jComboBox1.getSelectedIndex() == 0) {
+            fsm.stopSimulation();
+            ((SimListModel)jList2.getModel()).notifyNewElements();
+        } else if (jComboBox1.getSelectedIndex() == 1) {
+            fsm.setIndex(Integer.MAX_VALUE);
+        } else {
+            step = -1;
+            fsm.getActive().clear();
+        }
         fsm.notifyObs();
-    }//GEN-LAST:event_jButton5ActionPerformed
+    }//GEN-LAST:event_butStopActionPerformed
 
-    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-        if (step == 0) {
-            return;
+    private void butPrevActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butPrevActionPerformed
+        if (jComboBox1.getSelectedIndex() == 0) {
+            fsm.previousStep();
+            ((SimListModel)jList2.getModel()).notifyNewElements(); 
+        } else if (jComboBox1.getSelectedIndex() == 1) {
+            fsm.setIndex(fsm.getIndex()-1);
+        } else {
+            if (step>0) {
+                fsm.getActive().clear();
+                step--;
+                Configuration c = ((ArrayList<Configuration>)jList2.getSelectedValue()).get(step);
+                fsm.getActive().add(c.q);
+                fsm.getActive().add(c.edge);
+            }
         }
-        int to = step-1;
-        jButton2ActionPerformed(evt);
-        while (step!=to) {
-            jButton3ActionPerformed(evt);
-        }
-    }//GEN-LAST:event_jButton6ActionPerformed
+        fsm.notifyObs();
+    }//GEN-LAST:event_butPrevActionPerformed
 
     private Timer timer;
     private TimerTask task;
@@ -348,7 +367,7 @@ public class SimulationPanel extends javax.swing.JPanel {
 
                 @Override
                 public void run() {
-                    jButton3ActionPerformed(new ActionEvent(jCheckBox1, ActionEvent.ACTION_PERFORMED, ""));
+                    butNextActionPerformed(new ActionEvent(jCheckBox1, ActionEvent.ACTION_PERFORMED, ""));
                 }
                 
             };
@@ -358,24 +377,39 @@ public class SimulationPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jCheckBox1ActionPerformed
 
-    private void jCheckBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox2ActionPerformed
-        jScrollPane2.setVisible(jCheckBox2.isSelected());
-    }//GEN-LAST:event_jCheckBox2ActionPerformed
+    private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
+        if (timer != null) timer.cancel();
+        texInput.setVisible(jComboBox1.getSelectedIndex() == 0);
+        if (jComboBox1.getSelectedIndex() == 2) {
+            if (fsm.getSimulation().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Keine Berechnung zum Simulieren.", "Simulation", JOptionPane.WARNING_MESSAGE);
+                jComboBox1.setSelectedIndex(0);
+            } else if (jList2.getSelectedIndex()<0) {
+                jList2.setSelectedIndex(0);
+            }
+            butBeginActionPerformed(evt);
+        }
+    }//GEN-LAST:event_jComboBox1ActionPerformed
+
+    private void jList2ValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jList2ValueChanged
+        if (jComboBox1.getSelectedIndex() == 2) {
+            
+            butBeginActionPerformed(new ActionEvent(jList2, ActionEvent.ACTION_PERFORMED, ""));
+        }
+    }//GEN-LAST:event_jList2ValueChanged
 
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
-    private javax.swing.JButton jButton6;
+    private javax.swing.JButton butBegin;
+    private javax.swing.JButton butEnd;
+    private javax.swing.JButton butNext;
+    private javax.swing.JButton butPrev;
+    private javax.swing.JButton butStop;
     private javax.swing.JCheckBox jCheckBox1;
-    private javax.swing.JCheckBox jCheckBox2;
-    private javax.swing.JLabel jLabel1;
+    private javax.swing.JComboBox jComboBox1;
     private javax.swing.JList jList2;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSpinner jSpinner1;
-    private javax.swing.JTextField jTextField1;
+    private javax.swing.JTextField texInput;
     // End of variables declaration//GEN-END:variables
 }

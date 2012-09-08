@@ -18,12 +18,14 @@ import javax.swing.JTabbedPane;
  *
  * @author Konnarr
  */
-public class GraphTab extends JPanel {
+public class GraphTab extends JPanel  {
     private static final long serialVersionUID = 1L;
     private Graph g;
     private GraphPanel graph;
     private ObjectInspector oi;
     private SimulationPanel sim;
+    private TableQxQ table;
+    private TableQxS table2;
     
     public GraphTab(Graph g) {
         this.g = g;
@@ -38,6 +40,12 @@ public class GraphTab extends JPanel {
         p.add(graph);
         tp.add("Graph", p);
         tp.setPreferredSize(new Dimension(400,400));
+        table = new TableQxQ(g);
+        tp.add("QxQ Tabelle",table);
+        if (g instanceof Fsm) {
+            table2 = new TableQxS((Fsm)g);
+            tp.add("QxS Tabelle",table2);
+        }
         if (g instanceof Fsm) {
             Fsm fsm = (Fsm) g;
             sim = new SimulationPanel(fsm);
@@ -68,4 +76,7 @@ public class GraphTab extends JPanel {
         return oi;
     }
 
+    public void setComment(String val) {
+        
+    }
 }

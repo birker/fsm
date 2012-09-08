@@ -60,7 +60,7 @@ public class Vertex implements Serializable, Element, Cloneable {
     private ArrayList<Edge> edges = new ArrayList<Edge>(); //redundant but good for simulation
     private String comment = "";
     private int index;
-    private boolean inherit = true;
+    //private boolean inherit = true;
     //graphical properties    
     private boolean labelOutside;// = defLabelOutside;
     private Color color;// = defColor;
@@ -82,6 +82,7 @@ public class Vertex implements Serializable, Element, Cloneable {
         color = parent.getDefVertexColor();
         fillColor = parent.getDefFillVertexColor();
         fillVertex = parent.isDefFillVertex();
+        autoWidth = parent.isDefVertexAutoWidth();
     }
     //////////////////Getter and Setter for local values///////////////////////
 
@@ -126,83 +127,65 @@ public class Vertex implements Serializable, Element, Cloneable {
         return shape;
     }
 
-    public void setDefaultShape(Point pos) {
+    public void setDefaultValues() {
+        Point pos = shape.getBounds().getLocation();
         shape = (RectangularShape) parent.getDefVertexShape().clone();
         shape.setFrame(pos.x, pos.y, shape.getWidth(), shape.getHeight());
         preferredWidth = (int) shape.getWidth();
+        color = parent.getDefVertexColor();
+        fillColor = parent.getDefFillVertexColor();
+        fillVertex = parent.isDefFillVertex();
+        labelOutside = parent.isDefLabelOutsideVertex();
+        autoWidth = parent.isDefVertexAutoWidth();
+        label.setVerticalAlignment(SwingConstants.CENTER);
         updateLabel();
     }
-
+    
     public void setShape(RectangularShape shape) {
         this.shape = shape;
         preferredWidth = (int) shape.getWidth();
-        inherit = false;
         updateLabel();
     }
 
     public Color getColor() {
-        if (inherit) {
-            return parent.getDefVertexColor();
-        } else {
             return color;
-        }
     }
 
     public void setColor(Color color) {
         this.color = color;
-        inherit = false;
     }
 
     public Color getFillColor() {
-        if (inherit) {
-            return parent.getDefFillVertexColor();//Vertex.defFillColor;
-        } else {
             return fillColor;
-        }
     }
 
     public void setFillColor(Color fillColor) {
         this.fillColor = fillColor;
-        inherit = false;
     }
 
-    public boolean isFillNode() {
-        if (inherit) {
-            return parent.isDefFillVertex();//Vertex.defFillNode;
-        } else {
+    public boolean isFillVertex() {
             return fillVertex;
-        }
     }
 
-    public void setFillNode(boolean fillNode) {
+    public void setFillVertex(boolean fillNode) {
         this.fillVertex = fillNode;
-        inherit = false;
     }
 
     public boolean isLabelOutside() {
-        if (inherit) {
-            return parent.isDefLabelOutsideVertex();//defLabelOutside;
-        }
         return labelOutside;
     }
 
     public void setLabelOutside(boolean labelOutside) {
         this.labelOutside = labelOutside;
-        inherit = false;
     }
 
     public boolean isAutoWidth() {
-        if (inherit) {
-            return parent.isDefVertexAutoWidth();//Vertex.defAutoWidth;
-        } else {
             return autoWidth;
-        }
     }
 
     public void setAutoWidth(boolean autoWidth) {
         this.autoWidth = autoWidth;
         updateLabel();
-        inherit = false;
     }
 
     public int getIndex() {
@@ -213,17 +196,22 @@ public class Vertex implements Serializable, Element, Cloneable {
         this.index = index;
     }
 
-    public boolean isInherit() {
+    /*public boolean isInherit() {
         return inherit;
     }
 
     public void setInherit() {
         inherit = true;
         setDefaultShape(shape.getBounds().getLocation());
-    }
+    }*/
 
     public int getPreferredWidth() {
         return preferredWidth;
+    }
+    
+    public void setPreferredWidth(int preferredWidth) {
+        this.preferredWidth = preferredWidth;
+        updateLabel();
     }
 
     public ArrayList<Edge> getEdges() {
@@ -237,8 +225,14 @@ public class Vertex implements Serializable, Element, Cloneable {
         } else {
             if (isAutoWidth()) {
                 getShape().setFrame(getShape().getX(), getShape().getY(), Math.max(getPreferredWidth(), label.getPreferredSize().getWidth() + 10), getShape().getHeight());
+                for (Edge e: getEdges()) {
+                    e.rebuildPath();
+                }
             } else if (getShape().getWidth() != getPreferredWidth()) {
                 getShape().setFrame(getShape().getX(), getShape().getY(), getPreferredWidth(), getShape().getHeight());
+                for (Edge e: getEdges()) {
+                    e.rebuildPath();
+                }
             }
             label.setBounds(getShape().getBounds()); //.setSize((int) getShape().getWidth(), (int) getShape().getHeight());
         }
@@ -322,4 +316,24 @@ public class Vertex implements Serializable, Element, Cloneable {
      tmp.
      return tmp;
      }*/
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 97 * hash + (this.name != null ? this.name.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Vertex other = (Vertex) obj;
+        return this == other;
+    }
+    
 }

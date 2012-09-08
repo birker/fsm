@@ -24,7 +24,7 @@ public class Edge implements Serializable, Element, Cloneable {
 
     public enum PathMode {
 
-        LINE("linear"), QUADRATIC_BEZIER("quadratisch"), CUBIC_BEZIER("kubisch");
+        LINE("gar nicht"), QUADRATIC_BEZIER("stark"), CUBIC_BEZIER("leicht");
 
         public fsm.Edge.PathMode getNext() {
             if (this.equals(CUBIC_BEZIER)) {
@@ -70,7 +70,7 @@ public class Edge implements Serializable, Element, Cloneable {
     //graphical properties
     private double degIn = AUTOMATIC;
     private double degOut = AUTOMATIC;
-    private boolean inherit = true;
+    //private boolean inherit = true;
     private double labelRotDeg = 0;
     private boolean labelRot;// = true;
     private Color color;// = defColor;
@@ -102,11 +102,7 @@ public class Edge implements Serializable, Element, Cloneable {
                 }
             }
         }
-        label.setVisible(true);
-        color = parent.getDefEdgeColor();
-        pathMode = parent.getDefPathMode();
-        labelRot = parent.isDefEdgeLabelRot();
-        directed = parent.isDefDirected();
+        setDefaultValues();
     }
 
     public static boolean isPerpendicular() {
@@ -143,6 +139,7 @@ public class Edge implements Serializable, Element, Cloneable {
         from.getEdges().remove(this);
         from = node;
         from.getEdges().add(this);
+        rebuildPath();
     }
 
     public Vertex getTo() {
@@ -151,6 +148,7 @@ public class Edge implements Serializable, Element, Cloneable {
 
     public void setTo(Vertex node) {
         to = node;
+        rebuildPath();
     }
 
     //zu public
@@ -177,12 +175,9 @@ public class Edge implements Serializable, Element, Cloneable {
     }
 
     public void setText() {
-        label.setText(getName()+(getName().equals("")||Double.isNaN(weight)?"":": ")+ (Double.isNaN(weight)?"":weight));
+        label.setText(getName()+(Double.isNaN(weight)?"":(getName().equals("")?"":": ")+weight));
         label.setSize(label.getPreferredSize());
-    }
-
-    public String getText() {
-        return label.getText();
+        repositionLabel();
     }
 
     //sollte readonly sein. nur zu lesen zum malen.
@@ -200,6 +195,7 @@ public class Edge implements Serializable, Element, Cloneable {
 
     public void setDegIn(double degIn) {
         this.degIn = degIn;
+        rebuildPath();
     }
 
     public double getDegOut() {
@@ -212,38 +208,41 @@ public class Edge implements Serializable, Element, Cloneable {
 
     public void setDegOut(double degOut) {
         this.degOut = degOut;
+        rebuildPath();
     }
 
-    public boolean isInherit() {
+    /*public boolean isInherit() {
         return inherit;
     }
 
     public void setInherit() {
         inherit = true;
+        rebuildPath();
+    }*/
+    public void setDefaultValues() {
+        directed = parent.isDefDirected();
+        color = parent.getDefEdgeColor();
+        pathMode = parent.getDefPathMode();
+        labelRot = parent.isDefEdgeLabelRot();
+        rebuildPath();
+        repositionLabel();
     }
 
     public boolean isDirected() {
-        if (inherit) {
-            return parent.isDefDirected();//defDirected;
-        }
         return directed;
     }
 
     public void setDirected(boolean directed) {
         this.directed = directed;
-        inherit = false;
+        rebuildPath();
     }
 
     public Color getColor() {
-        if (inherit) {
-            return parent.getDefEdgeColor();//defColor;
-        }
         return color;
     }
 
     public void setColor(Color color) {
         this.color = color;
-        inherit = false;
     }
 
     public int getIndex() {
@@ -255,15 +254,12 @@ public class Edge implements Serializable, Element, Cloneable {
     }
 
     public PathMode getPathMode() {
-        if (inherit) {
-            return parent.getDefPathMode();//defPathMode;
-        }
         return pathMode;
     }
 
     public void setPathMode(PathMode pathMode) {
         this.pathMode = pathMode;
-        inherit = false;
+        rebuildPath();
     }
 
     public double getLabelRotDeg() {
@@ -272,18 +268,16 @@ public class Edge implements Serializable, Element, Cloneable {
 
     public void setLabelRotDeg(double labelrot) {
         this.labelRotDeg = labelrot;
+        
     }
 
     public boolean isLabelRot() {
-        if (inherit && from != to) {
-            return parent.isDefEdgeLabelRot();//defLabelRot;
-        }
         return labelRot;
     }
 
     public void setLabelRot(boolean labelRot) {
         this.labelRot = labelRot;
-        inherit = false;
+        repositionLabel();
     }
 
     public String getComment() {
@@ -506,4 +500,32 @@ public class Edge implements Serializable, Element, Cloneable {
      tmp.from = from.clone();
      return tmp;
      }*/
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 29 * hash + (this.from != null ? this.from.hashCode() : 0);
+        hash = 29 * hash + (this.to != null ? this.to.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Edge other = (Edge) obj;
+        if (this.from != other.from && (this.from == null || !this.from.equals(other.from))) {
+            return false;
+        }
+        if (this.to != other.to && (this.to == null || !this.to.equals(other.to))) {
+            return false;
+        }
+        return true;
+    }
+
+    
 }

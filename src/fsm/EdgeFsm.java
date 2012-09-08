@@ -5,6 +5,7 @@
 package fsm;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  *
@@ -18,10 +19,10 @@ public class EdgeFsm extends Edge {
         setDirected(true);
     }
     
-    private ArrayList<String> trans = new ArrayList<String>();
+    private HashSet<String> trans = new HashSet<String>();
     
     //zu public
-    public ArrayList<String> getTransitions() {
+    public HashSet<String> getTransitions() {
         return trans;
     }//*/
     
@@ -30,9 +31,11 @@ public class EdgeFsm extends Edge {
         String s = getName();
         if (!s.equals("") && !trans.isEmpty()) s += ": ";
         for (String t: trans) {
-            s += (s.equals("")?"":", ")+t;
+            s += (s.equals(getName())||s.equals(getName()+": ") ?"":", ")+t;
         }
         getLabel().setText(s);
+        getLabel().setSize(getLabel().getPreferredSize());
+        repositionLabel();
         //setText(s);
     }
         

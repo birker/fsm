@@ -18,12 +18,19 @@ import fsm.Vertex;
 import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 import javax.swing.AbstractButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -44,6 +51,9 @@ public class Main extends javax.swing.JFrame {
     //private ArrayList<JFrame> graphWindows = new ArrayList<JFrame>();
     //private ArrayList<JFrame> simulationWindows = new ArrayList<JFrame>();
     private JFileChooser fs = new JFileChooser();
+    private ArrayList<File> lastFiles;
+    private int numFsm = 0;
+    private int numGraph = 0;
     
     private Graph getSelectedGraph() {
         return ((GraphTab) jTabbedPane1.getSelectedComponent()).getGraph();
@@ -100,6 +110,20 @@ public class Main extends javax.swing.JFrame {
         simulationWindows.add(simulationWindow);
     }    */
     
+    static private byte[] object2Bytes(Object o) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(o);
+        return baos.toByteArray();
+    }
+    
+    static private Object bytes2Object(byte[] bytes) throws IOException, ClassNotFoundException {
+        ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+        ObjectInputStream ois = new ObjectInputStream(bais);
+        Object o = ois.readObject();
+        return o;
+    }
+        
     /** Creates new form Main */
     public Main() {
         initComponents();
@@ -133,6 +157,14 @@ public class Main extends javax.swing.JFrame {
             }
         } catch (Exception e) {
         }
+        
+        Preferences pref = Preferences.userRoot().node("Fsm");
+        try {
+            lastFiles = (ArrayList<File>) bytes2Object(pref.getByteArray("lastFiles", object2Bytes(new ArrayList<File>(11))));
+        } catch (Exception ex) {
+            lastFiles = new ArrayList<File>(11);
+        }
+        buildLastFilesMenu();
     }
 
     /** This method is called from within the constructor to
@@ -153,6 +185,17 @@ public class Main extends javax.swing.JFrame {
         jSeparator2 = new javax.swing.JPopupMenu.Separator();
         jMenuItem5 = new javax.swing.JMenuItem();
         jMenuItem6 = new javax.swing.JMenuItem();
+        jMenu9 = new javax.swing.JMenu();
+        jMenuItem33 = new javax.swing.JMenuItem();
+        jMenuItem34 = new javax.swing.JMenuItem();
+        jMenuItem35 = new javax.swing.JMenuItem();
+        jMenuItem36 = new javax.swing.JMenuItem();
+        jMenuItem37 = new javax.swing.JMenuItem();
+        jMenuItem38 = new javax.swing.JMenuItem();
+        jMenuItem39 = new javax.swing.JMenuItem();
+        jMenuItem40 = new javax.swing.JMenuItem();
+        jMenuItem41 = new javax.swing.JMenuItem();
+        jMenuItem42 = new javax.swing.JMenuItem();
         jMenuItem4 = new javax.swing.JMenuItem();
         jSeparator3 = new javax.swing.JPopupMenu.Separator();
         jMenuItem11 = new javax.swing.JMenuItem();
@@ -163,6 +206,7 @@ public class Main extends javax.swing.JFrame {
         jMenu4 = new javax.swing.JMenu();
         jMenuItem9 = new javax.swing.JMenuItem();
         jMenuItem7 = new javax.swing.JMenuItem();
+        jMenuItem32 = new javax.swing.JMenuItem();
         jCheckBoxMenuItem5 = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItem2 = new javax.swing.JCheckBoxMenuItem();
         jMenu6 = new javax.swing.JMenu();
@@ -178,6 +222,7 @@ public class Main extends javax.swing.JFrame {
         jMenuItem24 = new javax.swing.JMenuItem();
         jMenuItem30 = new javax.swing.JMenuItem();
         jMenuItem31 = new javax.swing.JMenuItem();
+        jMenuItem43 = new javax.swing.JMenuItem();
         jMenuItem29 = new javax.swing.JMenuItem();
         jMenu5 = new javax.swing.JMenu();
         jMenuItem13 = new javax.swing.JMenuItem();
@@ -241,6 +286,100 @@ public class Main extends javax.swing.JFrame {
         });
         jMenu1.add(jMenuItem6);
 
+        jMenu9.setText("zuletzt geöffnete Dateien");
+
+        jMenuItem33.setText("jMenuItem33");
+        jMenuItem33.setActionCommand("0");
+        jMenuItem33.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem33ActionPerformed(evt);
+            }
+        });
+        jMenu9.add(jMenuItem33);
+
+        jMenuItem34.setText("jMenuItem34");
+        jMenuItem34.setActionCommand("1");
+        jMenuItem34.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem33ActionPerformed(evt);
+            }
+        });
+        jMenu9.add(jMenuItem34);
+
+        jMenuItem35.setText("jMenuItem35");
+        jMenuItem35.setActionCommand("2");
+        jMenuItem35.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem33ActionPerformed(evt);
+            }
+        });
+        jMenu9.add(jMenuItem35);
+
+        jMenuItem36.setText("jMenuItem36");
+        jMenuItem36.setActionCommand("3");
+        jMenuItem36.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem33ActionPerformed(evt);
+            }
+        });
+        jMenu9.add(jMenuItem36);
+
+        jMenuItem37.setText("jMenuItem37");
+        jMenuItem37.setActionCommand("4");
+        jMenuItem37.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem33ActionPerformed(evt);
+            }
+        });
+        jMenu9.add(jMenuItem37);
+
+        jMenuItem38.setText("jMenuItem38");
+        jMenuItem38.setActionCommand("5");
+        jMenuItem38.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem33ActionPerformed(evt);
+            }
+        });
+        jMenu9.add(jMenuItem38);
+
+        jMenuItem39.setText("jMenuItem39");
+        jMenuItem39.setActionCommand("6");
+        jMenuItem39.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem33ActionPerformed(evt);
+            }
+        });
+        jMenu9.add(jMenuItem39);
+
+        jMenuItem40.setText("jMenuItem40");
+        jMenuItem40.setActionCommand("7");
+        jMenuItem40.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem33ActionPerformed(evt);
+            }
+        });
+        jMenu9.add(jMenuItem40);
+
+        jMenuItem41.setText("jMenuItem41");
+        jMenuItem41.setActionCommand("8");
+        jMenuItem41.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem33ActionPerformed(evt);
+            }
+        });
+        jMenu9.add(jMenuItem41);
+
+        jMenuItem42.setText("jMenuItem42");
+        jMenuItem42.setActionCommand("9");
+        jMenuItem42.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem33ActionPerformed(evt);
+            }
+        });
+        jMenu9.add(jMenuItem42);
+
+        jMenu1.add(jMenu9);
+
         jMenuItem4.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.CTRL_MASK));
         jMenuItem4.setText("Graphen als PNG exportieren");
         jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
@@ -299,13 +438,22 @@ public class Main extends javax.swing.JFrame {
         });
         jMenu4.add(jMenuItem9);
 
-        jMenuItem7.setText("Graph ausrichten");
+        jMenuItem7.setLabel("Graph am Raster ausrichten");
         jMenuItem7.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem7ActionPerformed(evt);
             }
         });
         jMenu4.add(jMenuItem7);
+
+        jMenuItem32.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Q, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem32.setText("SpringEmbedder");
+        jMenuItem32.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem32ActionPerformed(evt);
+            }
+        });
+        jMenu4.add(jMenuItem32);
 
         jCheckBoxMenuItem5.setSelected(true);
         jCheckBoxMenuItem5.setLabel("automatische Hilfspunkte");
@@ -382,6 +530,7 @@ public class Main extends javax.swing.JFrame {
         });
         jMenu8.add(jMenuItem26);
 
+        jMenuItem27.setEnabled(false);
         jMenuItem27.setLabel("Minimieren (für DEAs)");
         jMenuItem27.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -415,6 +564,10 @@ public class Main extends javax.swing.JFrame {
             }
         });
         jMenu6.add(jMenuItem31);
+
+        jMenuItem43.setEnabled(false);
+        jMenuItem43.setLabel("Sprache identifizieren (Kleene, regEx)");
+        jMenu6.add(jMenuItem43);
 
         jMenuItem29.setLabel("Automat untersuchen");
         jMenuItem29.addActionListener(new java.awt.event.ActionListener() {
@@ -525,16 +678,11 @@ public class Main extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 790, Short.MAX_VALUE)
-                .addContainerGap())
+            .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 800, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 557, Short.MAX_VALUE)
-                .addContainerGap())
+            .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 579, Short.MAX_VALUE)
         );
 
         pack();
@@ -610,31 +758,33 @@ public class Main extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem3ActionPerformed
 
     private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
-        JOptionPane.showMessageDialog(this, "<html><h3 style=\"margin:0;\">Zustände</h3><ul style=\"margin-top:0;margin-bottom:0\">"
+        JOptionPane.showMessageDialog(this, "<html>"
+                + "<i>Hinweis: Drag bedeutet klicken, nicht los lassen und ziehen.</i>"                
+                +"<h3 style=\"margin:0;\">Zustände</h3><ul style=\"margin-top:0;margin-bottom:0\">"
                 +"<li><u>auswählen:</u> Linksklick</li>"
-                +"<li><u>neu:</u> Rechtsklick ins Leere</li>"
+                +"<li><u>neu:</u> Rechtsklick oder Doppelklick mit links ins Leere</li>"
                 +"<li><u>löschen:</u> Auswählen, Entf drücken</li>"
                 +"<li><u>verschieben:</u> Links Drag</li>"
                 +"<li><u>Start-/Endzustand durchschalten:</u> Mittelklick</li>"
                 +"<li><u>beschriften:</u> Auswählen, Tastatureingabe (Backspace/Rücktaste zum Löschen)</li>"
                 +"</ul><h3 style=\"margin:0;\">Kanten</h3><ul style=\"margin-top:0;margin-bottom:0\">"
                 +"<li><u>auswählen:</u> Linksklick</li>"
-                +"<li><u>neu:</u> Startknoten auswählen, Rechtsklick auf den Zielknoten</li>"
+                +"<li><u>neu:</u> Startknoten auswählen, Rechtsklick oder Doppelklick mit links auf den Zielknoten</li>"
                 +"<li><u>löschen:</u> Auswählen, Entf drücken</li>"
-                +"<li><u>Ziel ändern:</u> Auswählen, Rechtsklick auf neuen Zielknoten</li>"
-                +"<li><u>Abrundung ändern:</u> Mittelklick (lineare, quadratische, kubische Bezierkurve)</li>"
+                +"<li><u>Ziel ändern:</u> Auswählen, Rechtsklick oder Doppelklick mit links auf neuen Zielknoten</li>"
                 +"<li><u>Übergang/Beschriftung ändern:</u> Auswählen, Tastatureingabe (Backspace/Rücktaste zum Löschen)</li>"
                 +"<li><u>Beschriftung verschieben:</u> Links Drag auf Beschriftung</li>"
                 +"<li><u>Beschriftungsrotation (de)aktivieren:</u> Mittelklick auf Beschriftung</li>"
                 +"<li>Hilfspunkte</li><ul style=\"margin-top:0;margin-bottom:0\">"
                 +"<li><u>neu:</u> Links Drag an gewünschter Stelle</li>"
                 +"<li><u>löschen:</u> Kante auswählen, Mittelklick auf Hilfspunkt</li>"
-                +"<li><u>verschieben:</u> Links Drag auf Hilfspunkt</li></ul>"
+                +"<li><u>verschieben:</u> Links Drag auf Hilfspunkt</li>"
+                +"<li><u>Abrundung der Ecken:</u> Mittelklick auf die Kante (gar nicht, leicht, stark)</li></ul>"
                 +"</ul><h3 style=\"margin:0;\">sonstiges</h3><ul style=\"margin-top:0;\">"
                 +"<li><u>neue Kante mit Knoten:</u> Rechts Drag vom Startknoten zum Zielknoten; existiert am Ziel keiner, wird er erstellt.</li>"
                 +"<li><u>nichts auswählen:</u> Linksklick ins Leere</li>"
                 +"<li><u>alles verschieben:</u> Rechts Drag im Leeren</li>"
-                +"</ul><i>Drag bedeutet klicken, nicht los lassen und ziehen.</i></html>", "Bedienung Graph", JOptionPane.INFORMATION_MESSAGE);
+                +"</ul></html>", "Bedienung Graph", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
@@ -648,12 +798,19 @@ public class Main extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem4ActionPerformed
 
     private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
+        fs.setSelectedFile(new File(getSelectedGraph().getName()));
         if (fs.showSaveDialog(this)==JFileChooser.APPROVE_OPTION) {
             try {
+                if ("".equals(getSelectedGraph().getName())) {
+                    getSelectedGraph().setName(fs.getSelectedFile().getName());
+                }
                 FileOutputStream fout = new FileOutputStream(fs.getSelectedFile());
                 ObjectOutputStream oos = new ObjectOutputStream(fout);
                 oos.writeObject(getSelectedGraph());
                 oos.close();
+                lastFiles.remove(fs.getSelectedFile());
+                lastFiles.add(0,fs.getSelectedFile());
+                buildLastFilesMenu();
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(this, "Konnte die Datei nicht speichern", "Fehler beim Speichern", JOptionPane.ERROR_MESSAGE);
             }
@@ -665,13 +822,16 @@ public class Main extends javax.swing.JFrame {
             try {
                 FileInputStream fin = new FileInputStream(fs.getSelectedFile());
                 ObjectInputStream ois = new ObjectInputStream(fin);
-                jTabbedPane1.add(fs.getSelectedFile().getName(),new GraphTab((Graph) ois.readObject()));
+                Graph g = (Graph) ois.readObject();
+                jTabbedPane1.add(g.getName(),new GraphTab(g));
                 ois.close();
+                lastFiles.remove(fs.getSelectedFile());
+                lastFiles.add(0,fs.getSelectedFile());
+                buildLastFilesMenu();
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(this, "Konnte die Datei nicht öffnen", "Fehler beim Laden", JOptionPane.ERROR_MESSAGE);
             } catch (ClassNotFoundException e) {
                 JOptionPane.showMessageDialog(this, "Klasse nicht gefunden", "Fehler beim Laden", JOptionPane.ERROR_MESSAGE);
-            
             }
         }
     }//GEN-LAST:event_jMenuItem6ActionPerformed
@@ -687,7 +847,9 @@ public class Main extends javax.swing.JFrame {
     }//GEN-LAST:event_jCheckBoxMenuItem2ItemStateChanged
 
     private void jMenuItem8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem8ActionPerformed
-        jTabbedPane1.add("Automat "+jTabbedPane1.getComponentCount(),new GraphTab(new Fsm()));
+        Fsm fsm = new Fsm();
+        fsm.setName("Automat "+numFsm++);
+        jTabbedPane1.add(fsm.getName(),new GraphTab(fsm));
         jTabbedPane1.setSelectedIndex(jTabbedPane1.getComponentCount()-1);
     }//GEN-LAST:event_jMenuItem8ActionPerformed
 
@@ -696,7 +858,9 @@ public class Main extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem11ActionPerformed
 
     private void jMenuItem10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem10ActionPerformed
-        jTabbedPane1.add("Graph "+jTabbedPane1.getComponentCount(),new GraphTab(new Graph()));
+        Graph g = new Graph();
+        g.setName("Graph "+numGraph++);
+        jTabbedPane1.add(g.getName(),new GraphTab(g));
         jTabbedPane1.setSelectedIndex(jTabbedPane1.getComponentCount()-1);
     }//GEN-LAST:event_jMenuItem10ActionPerformed
 
@@ -824,6 +988,29 @@ public class Main extends javax.swing.JFrame {
         Edge.setAutoSP(jCheckBoxMenuItem5.isSelected());
     }//GEN-LAST:event_jCheckBoxMenuItem5ActionPerformed
 
+    private void jMenuItem32ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem32ActionPerformed
+        getSelectedGraph().springEmbedder2();
+        getSelectedGraph().notifyObs();
+    }//GEN-LAST:event_jMenuItem32ActionPerformed
+
+    private void jMenuItem33ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem33ActionPerformed
+        try {
+            File f = lastFiles.get(Integer.parseInt(evt.getActionCommand()));
+            FileInputStream fin = new FileInputStream(f);
+            ObjectInputStream ois = new ObjectInputStream(fin);
+            Graph g = (Graph) ois.readObject();
+            jTabbedPane1.add(g.getName(),new GraphTab(g));
+            ois.close();
+            lastFiles.remove(f);
+            lastFiles.add(0,f);
+            buildLastFilesMenu();
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Konnte die Datei nicht öffnen", "Fehler beim Laden", JOptionPane.ERROR_MESSAGE);
+        } catch (ClassNotFoundException e) {
+            JOptionPane.showMessageDialog(this, "Klasse nicht gefunden", "Fehler beim Laden", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_jMenuItem33ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -853,6 +1040,7 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JMenu jMenu6;
     private javax.swing.JMenu jMenu7;
     private javax.swing.JMenu jMenu8;
+    private javax.swing.JMenu jMenu9;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem10;
@@ -879,7 +1067,19 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem30;
     private javax.swing.JMenuItem jMenuItem31;
+    private javax.swing.JMenuItem jMenuItem32;
+    private javax.swing.JMenuItem jMenuItem33;
+    private javax.swing.JMenuItem jMenuItem34;
+    private javax.swing.JMenuItem jMenuItem35;
+    private javax.swing.JMenuItem jMenuItem36;
+    private javax.swing.JMenuItem jMenuItem37;
+    private javax.swing.JMenuItem jMenuItem38;
+    private javax.swing.JMenuItem jMenuItem39;
     private javax.swing.JMenuItem jMenuItem4;
+    private javax.swing.JMenuItem jMenuItem40;
+    private javax.swing.JMenuItem jMenuItem41;
+    private javax.swing.JMenuItem jMenuItem42;
+    private javax.swing.JMenuItem jMenuItem43;
     private javax.swing.JMenuItem jMenuItem5;
     private javax.swing.JMenuItem jMenuItem6;
     private javax.swing.JMenuItem jMenuItem7;
@@ -893,5 +1093,24 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JMenu mLooknFeel;
     // End of variables declaration//GEN-END:variables
+
+    private void buildLastFilesMenu() {
+        while (lastFiles.size() > 10) {
+            lastFiles.remove(10);
+        }
+        Preferences pref = Preferences.userRoot().node("Fsm");
+        try {
+            pref.putByteArray("lastFiles", object2Bytes(lastFiles));
+        } catch (IOException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        for (int i = 0; i < lastFiles.size(); i++) {
+            jMenu9.getItem(i).setText(lastFiles.get(i).getName());
+            jMenu9.getItem(i).setVisible(true);
+        }
+        for (int i = lastFiles.size(); i < 10 ; i++) {
+            jMenu9.getItem(i).setVisible(false);
+        }
+    }
 
 }
