@@ -9,6 +9,7 @@ import fsm.EdgeFsm;
 import fsm.Fsm;
 import fsm.Graph;
 import fsm.Vertex;
+import java.awt.EventQueue;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
@@ -32,7 +33,7 @@ public class TableQxS extends javax.swing.JPanel implements Observer, ListSelect
                 ((QxSTableModel)jTable1.getModel()).addLetter(s);
             }
         }
-        ((QxSTableModel)jTable1.getModel()).fireTableStructureChanged();
+        //((QxSTableModel)jTable1.getModel()).fireTableStructureChanged();
     }
 
     @Override
@@ -51,16 +52,21 @@ public class TableQxS extends javax.swing.JPanel implements Observer, ListSelect
         private ArrayList<String> letter = new ArrayList<String>();
 
         public void addLetter(String s) {
-            if (!letter.contains(s))
-            letter.add(s);
+            if (!letter.contains(s)) {
+                
+                letter.add(s);
+                fireTableStructureChanged();
+            }
         }
 
         public void removeLetter(int index) {
             letter.remove(index);
+            fireTableStructureChanged();
         }        
         
         public void removeLetter(String s) {
-            letter.remove(s);
+            if (letter.remove(s))
+                fireTableStructureChanged();
         }
         
         public QxSTableModel(Graph g) {
@@ -139,10 +145,10 @@ public class TableQxS extends javax.swing.JPanel implements Observer, ListSelect
                 String s = letter.get(columnIndex-1);
                 ArrayList<Vertex> newV = (ArrayList<Vertex>) value;
                 ArrayList<Vertex> oldV = (ArrayList<Vertex>) getValueAt(rowIndex, columnIndex);
-                ArrayList<Vertex> oldV2 = (ArrayList<Vertex>) getValueAt(rowIndex, columnIndex);
+                ArrayList<Vertex> oldV2 = new ArrayList<Vertex>(oldV);
                 oldV.removeAll(newV);
                 newV.removeAll(oldV2);
-                for (Edge e: (ArrayList<Edge>)n.getEdges().clone()) {
+                for (Edge e: new ArrayList<Edge>(n.getEdges())) {
                     if (oldV.contains(e.getTo())) {
                         ((EdgeFsm)e).getTransitions().remove(s);
                         if (((EdgeFsm)e).getTransitions().isEmpty()) {
@@ -161,6 +167,8 @@ public class TableQxS extends javax.swing.JPanel implements Observer, ListSelect
                 }
                 g.notifyObs();
             }
+            fireTableCellUpdated(rowIndex, columnIndex);
+            //fireTableStructureChanged();
         }
         
         
@@ -169,14 +177,21 @@ public class TableQxS extends javax.swing.JPanel implements Observer, ListSelect
     /**
      * Creates new form TableQxS
      */
-    public TableQxS(Fsm g) {
+    public TableQxS(final Fsm g) {
         this.g = g;
         initComponents();
         jTable1.setModel(new QxSTableModel(g));
         jTable1.setDefaultRenderer(Object.class, new UniversalTableCellRenderer());
         jTable1.setDefaultEditor(Object.class, new UniversalTableCellEditor(g));
         //jTable1.getSelectionModel().addListSelectionListener(this);
-        g.addObserver(this);
+        /*EventQueue.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                g.addObserver(TableQxS.this);
+            }
+        });*/
+        
     }
 
     /**
@@ -253,12 +268,12 @@ public class TableQxS extends javax.swing.JPanel implements Observer, ListSelect
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         ((QxSTableModel)jTable1.getModel()).addLetter(jTextField1.getText());
-        ((QxSTableModel)jTable1.getModel()).fireTableStructureChanged();
+        //((QxSTableModel)jTable1.getModel()).fireTableStructureChanged();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         ((QxSTableModel)jTable1.getModel()).removeLetter(jTextField1.getText());
-        ((QxSTableModel)jTable1.getModel()).fireTableStructureChanged();
+        //((QxSTableModel)jTable1.getModel()).fireTableStructureChanged();
     }//GEN-LAST:event_jButton2ActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

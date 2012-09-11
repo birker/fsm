@@ -20,7 +20,6 @@ import javax.swing.table.AbstractTableModel;
 public class ObjectInspectorTableModel extends AbstractTableModel {
 
         private static final long serialVersionUID = 1L;
-        private String[] columnNames = {"Eigenschaft", "Wert"};
         Object[][] dataGraph = {
             {"Name", null},
             {"Kommentar", null},
@@ -86,9 +85,11 @@ public class ObjectInspectorTableModel extends AbstractTableModel {
             {"Beschriftungswinkel", null},
             {"ausgehender Winkel", null},
             {"eingehender Winkel", null},
+            {"automatische Hilfspunkte", null},
             {"Hilfspunkte", null}
         };
         private Graph g;
+        private int spCount;
 
         public void fillData() {
             //RowIndexes!
@@ -187,9 +188,11 @@ public class ObjectInspectorTableModel extends AbstractTableModel {
                 dataEdge[12][1] = ((Edge)g.getChoice()).getLabelRotDeg();
                 dataEdge[13][1] = ((Edge)g.getChoice()).getDegOut();
                 dataEdge[14][1] = ((Edge)g.getChoice()).getDegIn();
-                dataEdge[15][1] = ((Edge)g.getChoice()).getSupportPoints();
+                dataEdge[15][1] = ((Edge)g.getChoice()).isAutoSP();                
+                dataEdge[16][1] = ((Edge)g.getChoice()).getSupportPoints();
+                spCount = ((Edge)g.getChoice()).getSupportPoints().size();
             }
-            fireTableStructureChanged();
+            fireTableDataChanged();
         }
         
         public ObjectInspectorTableModel(Graph g) {
@@ -218,7 +221,8 @@ public class ObjectInspectorTableModel extends AbstractTableModel {
 
         @Override
         public String getColumnName(int col) {
-            return columnNames[col];
+            if (col == 0) return "Eigenschaft";
+            return "Wert";
         }
 
         @Override
@@ -291,15 +295,17 @@ public class ObjectInspectorTableModel extends AbstractTableModel {
                 } else if (getValueAt(row,0).equals("Knotenbeschr. außen")) {//row == 11) {
                     g.setDefLabelOutsideVertex((Boolean)value);
                 } else if (getValueAt(row,0).equals("Knotenform")) {//row == 12) {
-                    RectangularShape s;
-                    try {
-                        s = (RectangularShape)((Class<?>)value).newInstance();
-                        s.setFrame(g.getDefVertexShape().getFrame());                    
-                        g.setDefVertexShape(s);
-                    } catch (InstantiationException ex) {
-                        Logger.getLogger(ObjectInspector.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (IllegalAccessException ex) {
-                        Logger.getLogger(ObjectInspector.class.getName()).log(Level.SEVERE, null, ex);
+                    if (g.getDefVertexShape().getClass() != (Class)value) {
+                        RectangularShape s;
+                        try {
+                            s = (RectangularShape)((Class<?>)value).newInstance();
+                            s.setFrame(g.getDefVertexShape().getFrame());                    
+                            g.setDefVertexShape(s);
+                        } catch (InstantiationException ex) {
+                            Logger.getLogger(ObjectInspector.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IllegalAccessException ex) {
+                            Logger.getLogger(ObjectInspector.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                     }
                 } else if (getValueAt(row,0).equals("Knotenbreite")) {//row == 13) {
                     g.getDefVertexShape().setFrame(g.getDefVertexShape().getX(),g.getDefVertexShape().getY(), (Integer) value, g.getDefVertexShape().getHeight());
@@ -353,15 +359,17 @@ public class ObjectInspectorTableModel extends AbstractTableModel {
                 } else if (getValueAt(row,0).equals("Beschriftungsposition")) {//row == 11) {
                     n.getLabel().setLocation((Point)value);
                 } else if (getValueAt(row,0).equals("Form")) {//row == 12) {
-                    RectangularShape s;
-                    try {
-                        s = (RectangularShape)((Class<?>)value).newInstance();
-                        s.setFrame(n.getShape().getFrame());                    
-                        n.setShape(s);
-                    } catch (InstantiationException ex) {
-                        Logger.getLogger(ObjectInspector.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (IllegalAccessException ex) {
-                        Logger.getLogger(ObjectInspector.class.getName()).log(Level.SEVERE, null, ex);
+                    if (n.getShape().getClass() != (Class)value) {
+                        RectangularShape s;
+                        try {
+                            s = (RectangularShape)((Class<?>)value).newInstance();
+                            s.setFrame(n.getShape().getFrame());                    
+                            n.setShape(s);
+                        } catch (InstantiationException ex) {
+                            Logger.getLogger(ObjectInspector.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IllegalAccessException ex) {
+                            Logger.getLogger(ObjectInspector.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                     }
                 } else if (getValueAt(row,0).equals("Position")) {//row == 13) {
                     n.getShape().setFrame(((Point)value).x, ((Point)value).y, n.getShape().getWidth(), n.getShape().getHeight());
@@ -414,15 +422,21 @@ public class ObjectInspectorTableModel extends AbstractTableModel {
                     e.setDegIn((Double)value);
                 } else if (getValueAt(row,0).equals("ausgehender Winkel")) {//row == 14) {
                     e.setDegOut((Double)value);
+                } else if (getValueAt(row,0).equals("automatische Hilfspunkte")) {//row == 14) {
+                    e.setAutoSP((Boolean)value);
                 } else if (getValueAt(row,0).equals("Hilfspunkte")) {//row == 15) {
                     //Hilfspunkte
+                    if (spCount != ((Edge)g.getChoice()).getSupportPoints().size()) {
+                        ((Edge)g.getChoice()).setAutoSP(false);
+                    }
                     e.rebuildPath();
                 } else if (getValueAt(row,0).equals("Übergänge")) {//row == 16) {
                     //Übergänge
                     e.setText();
                 }
             }
+            //fireTableCellUpdated(row, col);
             g.notifyObs();
-            fireTableCellUpdated(row, col);
         }
+        
     }

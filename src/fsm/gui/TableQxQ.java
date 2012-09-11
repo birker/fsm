@@ -8,6 +8,7 @@ import fsm.Edge;
 import fsm.EdgeFsm;
 import fsm.Graph;
 import fsm.Vertex;
+import java.awt.EventQueue;
 import java.util.Arrays;
 import java.util.Observable;
 import java.util.Observer;
@@ -174,14 +175,20 @@ public class TableQxQ extends javax.swing.JPanel implements Observer, ListSelect
     /**
      * Creates new form TableQxQ
      */
-    public TableQxQ(Graph g) {
+    public TableQxQ(final Graph g) {
         this.g = g;
         initComponents();
         jTable1.setModel(new QxQTableModel(g));
         jTable1.setDefaultRenderer(Object.class, new UniversalTableCellRenderer());
         jTable1.setDefaultEditor(Object.class, new UniversalTableCellEditor(g));
         //(jTable1.getSelectionModel()).addListSelectionListener(this);
-        g.addObserver(this);
+        /*EventQueue.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                g.addObserver(TableQxQ.this);
+            }
+        });*/
     }
 
     /**

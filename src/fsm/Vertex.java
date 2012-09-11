@@ -12,6 +12,8 @@ import java.awt.geom.RectangularShape;
 import java.awt.geom.RoundRectangle2D;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Stack;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
@@ -29,20 +31,27 @@ public class Vertex implements Serializable, Element, Cloneable {
         private ShapeType(String name) {
             this.name = name;
         }
-        
+
         static public ShapeType getEnum(RectangularShape s) {
-            if (s instanceof Ellipse2D) return ELLIPSE;
-            else if (s instanceof Rectangle2D) return RECTANGLE;
-            else if (s instanceof RoundRectangle2D) return ROUNDRECT;
+            if (s instanceof Ellipse2D) {
+                return ELLIPSE;
+            } else if (s instanceof Rectangle2D) {
+                return RECTANGLE;
+            } else if (s instanceof RoundRectangle2D) {
+                return ROUNDRECT;
+            }
             return null;
         }
-        
+
         public Class<?> getShapeClass() {
-            if (this.equals(ELLIPSE)) return Ellipse2D.Double.class;
-            else if (this.equals(RECTANGLE)) return Rectangle2D.Double.class;
-            else return RoundRectangle2D.Double.class;
+            if (this.equals(ELLIPSE)) {
+                return Ellipse2D.Double.class;
+            } else if (this.equals(RECTANGLE)) {
+                return Rectangle2D.Double.class;
+            } else {
+                return RoundRectangle2D.Double.class;
+            }
         }
-        
         private final String name;
 
         @Override
@@ -50,7 +59,6 @@ public class Vertex implements Serializable, Element, Cloneable {
             return name;
         }
     }
-    
     private static final long serialVersionUID = 2345541351034924475L;
     private Graph parent;
     private JLabel label = new JLabel("");
@@ -71,18 +79,21 @@ public class Vertex implements Serializable, Element, Cloneable {
     private int preferredWidth;
 
     ////////////////Constructor///////////////////////////////////////////
-    public Vertex(Graph g, RectangularShape shape, Point pos, String name) {
+    public Vertex(Graph g, Point pos, String name) {
         this.parent = g;
-        this.shape = (RectangularShape) shape.clone();
-        this.shape.setFrame(pos.x, pos.y, shape.getWidth(), shape.getHeight());
+        //this.shape = (RectangularShape) shape.clone();
+        //this.shape.setFrame(pos.x, pos.y, shape.getWidth(), shape.getHeight());
+        //this.shape = shape;
+        this.shape = new Rectangle2D.Double(pos.x, pos.y, 10, 10);
+        setDefaultValues();        
         preferredWidth = (int) shape.getWidth();
         label.setHorizontalAlignment(SwingConstants.CENTER);
         setName(name);
-        labelOutside = parent.isDefLabelOutsideVertex();
+        /*labelOutside = parent.isDefLabelOutsideVertex();
         color = parent.getDefVertexColor();
         fillColor = parent.getDefFillVertexColor();
         fillVertex = parent.isDefFillVertex();
-        autoWidth = parent.isDefVertexAutoWidth();
+        autoWidth = parent.isDefVertexAutoWidth();*/
     }
     //////////////////Getter and Setter for local values///////////////////////
 
@@ -140,7 +151,7 @@ public class Vertex implements Serializable, Element, Cloneable {
         label.setVerticalAlignment(SwingConstants.CENTER);
         updateLabel();
     }
-    
+
     public void setShape(RectangularShape shape) {
         this.shape = shape;
         preferredWidth = (int) shape.getWidth();
@@ -148,7 +159,7 @@ public class Vertex implements Serializable, Element, Cloneable {
     }
 
     public Color getColor() {
-            return color;
+        return color;
     }
 
     public void setColor(Color color) {
@@ -156,7 +167,7 @@ public class Vertex implements Serializable, Element, Cloneable {
     }
 
     public Color getFillColor() {
-            return fillColor;
+        return fillColor;
     }
 
     public void setFillColor(Color fillColor) {
@@ -164,7 +175,7 @@ public class Vertex implements Serializable, Element, Cloneable {
     }
 
     public boolean isFillVertex() {
-            return fillVertex;
+        return fillVertex;
     }
 
     public void setFillVertex(boolean fillNode) {
@@ -180,7 +191,7 @@ public class Vertex implements Serializable, Element, Cloneable {
     }
 
     public boolean isAutoWidth() {
-            return autoWidth;
+        return autoWidth;
     }
 
     public void setAutoWidth(boolean autoWidth) {
@@ -197,18 +208,17 @@ public class Vertex implements Serializable, Element, Cloneable {
     }
 
     /*public boolean isInherit() {
-        return inherit;
-    }
+     return inherit;
+     }
 
-    public void setInherit() {
-        inherit = true;
-        setDefaultShape(shape.getBounds().getLocation());
-    }*/
-
+     public void setInherit() {
+     inherit = true;
+     setDefaultShape(shape.getBounds().getLocation());
+     }*/
     public int getPreferredWidth() {
         return preferredWidth;
     }
-    
+
     public void setPreferredWidth(int preferredWidth) {
         this.preferredWidth = preferredWidth;
         updateLabel();
@@ -221,16 +231,17 @@ public class Vertex implements Serializable, Element, Cloneable {
     public void updateLabel() {
         label.setText(parseString(name));
         if (isLabelOutside()) {
-            label.setLocation((int) getShape().getX(), (int) getShape().getY());
+            label.setSize(label.getPreferredSize());
+            //label.setLocation((int) getShape().getX(), (int) getShape().getY());
         } else {
             if (isAutoWidth()) {
                 getShape().setFrame(getShape().getX(), getShape().getY(), Math.max(getPreferredWidth(), label.getPreferredSize().getWidth() + 10), getShape().getHeight());
-                for (Edge e: getEdges()) {
+                for (Edge e : getEdges()) {
                     e.rebuildPath();
                 }
             } else if (getShape().getWidth() != getPreferredWidth()) {
                 getShape().setFrame(getShape().getX(), getShape().getY(), getPreferredWidth(), getShape().getHeight());
-                for (Edge e: getEdges()) {
+                for (Edge e : getEdges()) {
                     e.rebuildPath();
                 }
             }
@@ -316,7 +327,6 @@ public class Vertex implements Serializable, Element, Cloneable {
      tmp.
      return tmp;
      }*/
-
     @Override
     public int hashCode() {
         int hash = 5;
@@ -335,5 +345,69 @@ public class Vertex implements Serializable, Element, Cloneable {
         final Vertex other = (Vertex) obj;
         return this == other;
     }
-    
+    HashMap<String, HashSet<Vertex>> reachable;
+
+    void calcReachable() {
+        if (!(parent instanceof Fsm)) {
+            return;
+        }
+        reachable = new HashMap<String, HashSet<Vertex>>();
+        for (Edge e : getEdges()) {
+            if (!(e instanceof EdgeFsm)) {
+                continue;
+            }
+            for (String t : ((EdgeFsm) e).getTransitions()) {
+                if (t.equals("" + ((Fsm) parent).getEpsSymbol())) {
+                    continue;
+                }
+                boolean found = false;
+                for (String s : new HashSet<String>(reachable.keySet())) {
+                    if (s.equals(t)) {
+                        reachable.get(s).add(e.getTo());
+                        found = true;
+                    } else {
+                        ArrayList<String> intersection = ((Fsm) parent).getIntersectionTrans(s, t);
+                        if (intersection != null && !intersection.isEmpty()) {
+                            HashSet<Vertex> tmp = reachable.get(s);
+                            reachable.remove(s);
+                            //rest 1
+                            ArrayList<String> remain = ((Fsm) parent).getRemainingTrans(s, t);
+                            for (String u : remain) {
+                                HashSet<Vertex> tmp2 = new HashSet<Vertex>(tmp);
+                                if (reachable.containsKey(u)) {
+                                    tmp2.addAll(reachable.get(u));
+                                }
+                                reachable.put(u, tmp2);
+                            }
+                            //intersection
+                            tmp.add(e.getTo());
+                            for (String u : intersection) {
+                                HashSet<Vertex> tmp2 = new HashSet<Vertex>(tmp);
+                                if (reachable.containsKey(u)) {
+                                    tmp2.addAll(reachable.get(u));
+                                }
+                                reachable.put(u, tmp2);
+                            }
+                            //rest 2
+                            remain = ((Fsm) parent).getRemainingTrans(t, s);
+                            for (String u : remain) {
+                                tmp = new HashSet<Vertex>();
+                                tmp.add(e.getTo());
+                                if (reachable.containsKey(u)) {
+                                    tmp.addAll(reachable.get(u));
+                                }
+                                reachable.put(u, tmp);
+                            }
+                            found = true;
+                        }
+                    }
+                }
+                if (!found) {
+                    HashSet<Vertex> tmp = new HashSet<Vertex>();
+                    tmp.add(e.getTo());
+                    reachable.put(t, tmp);
+                }
+            }
+        }
+    }
 }

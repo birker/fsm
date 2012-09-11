@@ -60,7 +60,7 @@ public class SimulationPanel extends javax.swing.JPanel {
         
     }
     
-    class SimListModel extends AbstractListModel<Object> {
+    class SimListModel extends AbstractListModel<ArrayList<Configuration>> {
         private static final long serialVersionUID = 1L;
 
         @Override
@@ -69,7 +69,7 @@ public class SimulationPanel extends javax.swing.JPanel {
         }
 
         @Override
-        public Object getElementAt(int index) {
+        public ArrayList<Configuration> getElementAt(int index) {
             if (index < getSize() && index >= 0)
                 return fsm.getSimulation().get(index); 
             return null;
@@ -108,8 +108,10 @@ public class SimulationPanel extends javax.swing.JPanel {
         jCheckBox1 = new javax.swing.JCheckBox();
         jSpinner1 = new javax.swing.JSpinner();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jList2 = new javax.swing.JList();
-        jComboBox1 = new javax.swing.JComboBox();
+        jList2 = new javax.swing.JList<ArrayList<Configuration>>();
+        jComboBox1 = new javax.swing.JComboBox<String>();
+        jSpinner2 = new javax.swing.JSpinner();
+        jLabel1 = new javax.swing.JLabel();
 
         texInput.setText("01");
         texInput.addActionListener(new java.awt.event.ActionListener() {
@@ -166,6 +168,11 @@ public class SimulationPanel extends javax.swing.JPanel {
         });
 
         jSpinner1.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(5), Integer.valueOf(1), null, Integer.valueOf(1)));
+        jSpinner1.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                jSpinner1StateChanged(evt);
+            }
+        });
 
         jList2.setModel(new SimListModel());
         jList2.setCellRenderer(new SimListRenderer());
@@ -183,6 +190,17 @@ public class SimulationPanel extends javax.swing.JPanel {
             }
         });
 
+        jSpinner2.setModel(new javax.swing.SpinnerNumberModel());
+        jSpinner2.setVisible(false);
+        jSpinner2.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                jSpinner2StateChanged(evt);
+            }
+        });
+
+        jLabel1.setText("jLabel1");
+        jLabel1.setVisible(false);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -196,7 +214,11 @@ public class SimulationPanel extends javax.swing.JPanel {
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(texInput))
+                                .addComponent(jSpinner2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(texInput, javax.swing.GroupLayout.DEFAULT_SIZE, 59, Short.MAX_VALUE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(butBegin, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -206,8 +228,7 @@ public class SimulationPanel extends javax.swing.JPanel {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(butEnd, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(butStop, javax.swing.GroupLayout.DEFAULT_SIZE, 64, Short.MAX_VALUE)
-                                .addGap(0, 0, 0)))
+                                .addComponent(butStop, javax.swing.GroupLayout.DEFAULT_SIZE, 64, Short.MAX_VALUE)))
                         .addContainerGap())
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jCheckBox1)
@@ -221,7 +242,9 @@ public class SimulationPanel extends javax.swing.JPanel {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(texInput, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jSpinner2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(butNext)
@@ -251,12 +274,14 @@ public class SimulationPanel extends javax.swing.JPanel {
             ((SimListModel)jList2.getModel()).notifyNewElements();
         } else if (jComboBox1.getSelectedIndex() == 1) {
             fsm.setIndex(0);
+            jSpinner2.setValue(fsm.getIndex());
         } else {
             fsm.getActive().clear();
             step = 0;
-            Configuration c = ((ArrayList<Configuration>)jList2.getSelectedValue()).get(step);
+            Configuration c = jList2.getSelectedValue().get(step);
             fsm.getActive().add(c.q);
             fsm.getActive().add(c.edge);
+            jLabel1.setText(c.input);
         }
         fsm.notifyObs();        
     }//GEN-LAST:event_butBeginActionPerformed
@@ -278,15 +303,17 @@ public class SimulationPanel extends javax.swing.JPanel {
             ((SimListModel)jList2.getModel()).notifyNewElements();
         } else if (jComboBox1.getSelectedIndex() == 1) {
             fsm.setIndex(fsm.getIndex()+1);
+            jSpinner2.setValue(fsm.getIndex());
         } else {
-            if (step < ((ArrayList<Configuration>)jList2.getSelectedValue()).size()-1) {
+            if (step < jList2.getSelectedValue().size()-1) {
                 fsm.getActive().clear();
                 step++;
-                Configuration c = ((ArrayList<Configuration>)jList2.getSelectedValue()).get(step);
+                Configuration c = jList2.getSelectedValue().get(step);
                 fsm.getActive().add(c.q);
                 fsm.getActive().add(c.edge);
+                jLabel1.setText(c.input);
             } else {
-                for (Element e: (ArrayList<Element>) fsm.getActive().clone()) {
+                for (Element e: new ArrayList<Element>(fsm.getActive())) {
                     if (e instanceof Edge) fsm.getActive().remove(e);
                     else {
                         if (((Vertex)e).isFinal()) {
@@ -312,11 +339,13 @@ public class SimulationPanel extends javax.swing.JPanel {
             ((SimListModel)jList2.getModel()).notifyNewElements();
         } else if (jComboBox1.getSelectedIndex() == 1) {
             fsm.setIndex(Integer.MAX_VALUE);
+            jSpinner2.setValue(fsm.getIndex());
         } else {
             fsm.getActive().clear();
-            step = ((ArrayList<Configuration>)jList2.getSelectedValue()).size() - 1;
-            Configuration c = ((ArrayList<Configuration>)jList2.getSelectedValue()).get(step);
+            step = jList2.getSelectedValue().size() - 1;
+            Configuration c = jList2.getSelectedValue().get(step);
             fsm.getActive().add(c.q);
+            jLabel1.setText(c.input);
             if (c.q.isFinal()) {
                 JOptionPane.showMessageDialog(this, "Die Berechnung ist akzeptierend.", "Simulation", JOptionPane.INFORMATION_MESSAGE);
             } else {
@@ -332,9 +361,11 @@ public class SimulationPanel extends javax.swing.JPanel {
             ((SimListModel)jList2.getModel()).notifyNewElements();
         } else if (jComboBox1.getSelectedIndex() == 1) {
             fsm.setIndex(Integer.MAX_VALUE);
+            jSpinner2.setValue(fsm.getIndex());
         } else {
             step = -1;
             fsm.getActive().clear();
+            jLabel1.setText("");
         }
         fsm.notifyObs();
     }//GEN-LAST:event_butStopActionPerformed
@@ -345,13 +376,15 @@ public class SimulationPanel extends javax.swing.JPanel {
             ((SimListModel)jList2.getModel()).notifyNewElements(); 
         } else if (jComboBox1.getSelectedIndex() == 1) {
             fsm.setIndex(fsm.getIndex()-1);
+            jSpinner2.setValue(fsm.getIndex());
         } else {
             if (step>0) {
                 fsm.getActive().clear();
                 step--;
-                Configuration c = ((ArrayList<Configuration>)jList2.getSelectedValue()).get(step);
+                Configuration c = jList2.getSelectedValue().get(step);
                 fsm.getActive().add(c.q);
                 fsm.getActive().add(c.edge);
+                jLabel1.setText(c.input);
             }
         }
         fsm.notifyObs();
@@ -361,6 +394,7 @@ public class SimulationPanel extends javax.swing.JPanel {
     private TimerTask task;
     
     private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed
+        if (timer != null) timer.cancel();
         if (jCheckBox1.isSelected()) {
             timer = new Timer();
             task = new TimerTask(){
@@ -372,14 +406,14 @@ public class SimulationPanel extends javax.swing.JPanel {
                 
             };
             timer.schedule(task, (Integer)jSpinner1.getValue()*1000, (Integer)jSpinner1.getValue()*1000);
-        } else {
-            timer.cancel();
         }
     }//GEN-LAST:event_jCheckBox1ActionPerformed
 
     private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
         if (timer != null) timer.cancel();
         texInput.setVisible(jComboBox1.getSelectedIndex() == 0);
+        jSpinner2.setVisible(jComboBox1.getSelectedIndex() == 1);
+        jLabel1.setVisible(jComboBox1.getSelectedIndex() == 2);
         if (jComboBox1.getSelectedIndex() == 2) {
             if (fsm.getSimulation().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Keine Berechnung zum Simulieren.", "Simulation", JOptionPane.WARNING_MESSAGE);
@@ -398,6 +432,15 @@ public class SimulationPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jList2ValueChanged
 
+    private void jSpinner2StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinner2StateChanged
+        fsm.setIndex((Integer)jSpinner2.getValue());
+        fsm.notifyObs();
+    }//GEN-LAST:event_jSpinner2StateChanged
+
+    private void jSpinner1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSpinner1StateChanged
+        jCheckBox1ActionPerformed(new ActionEvent(jSpinner1, ActionEvent.ACTION_PERFORMED, ""));
+    }//GEN-LAST:event_jSpinner1StateChanged
+
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton butBegin;
@@ -406,10 +449,12 @@ public class SimulationPanel extends javax.swing.JPanel {
     private javax.swing.JButton butPrev;
     private javax.swing.JButton butStop;
     private javax.swing.JCheckBox jCheckBox1;
-    private javax.swing.JComboBox jComboBox1;
-    private javax.swing.JList jList2;
+    private javax.swing.JComboBox<String> jComboBox1;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JList<ArrayList<Configuration>> jList2;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSpinner jSpinner1;
+    private javax.swing.JSpinner jSpinner2;
     private javax.swing.JTextField texInput;
     // End of variables declaration//GEN-END:variables
 }

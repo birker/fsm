@@ -14,8 +14,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.geom.RectangularShape;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Timer;
@@ -35,8 +40,6 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.table.TableCellEditor;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
@@ -50,48 +53,43 @@ import javax.swing.text.DocumentFilter;
 public class UniversalTableCellEditor extends AbstractCellEditor implements TableCellEditor{
         private static final long serialVersionUID = 1L;
         
-        private JTextField text = new JTextField();
-        private JComboBox<Edge.PathMode> comboPath = new JComboBox<Edge.PathMode>(Edge.PathMode.values());
-        private JComboBox<Vertex.ShapeType> comboShape = new JComboBox<Vertex.ShapeType>(Vertex.ShapeType.values());
-        private JLabel color = new JLabel();
-        private JSpinner spinnerInt = new JSpinner(new SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
-        private JSpinner spinnerIntx = new JSpinner(new SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
-        private JSpinner spinnerInty = new JSpinner(new SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
-        private JSpinner spinnerDouble = new JSpinner(new SpinnerNumberModel(Double.valueOf(0), null, null, Double.valueOf(1)));
-        private JTextField charField = new JTextField();
-        private JPanel point = new JPanel();
-        private JComboBox<Vertex> comboVertex = new JComboBox<Vertex>();
-        private CollectionEditor coll;
+        private final JTextField text = new JTextField();
+        private final JComboBox<Edge.PathMode> comboPath = new JComboBox<Edge.PathMode>(Edge.PathMode.values());
+        private final JComboBox<Vertex.ShapeType> comboShape = new JComboBox<Vertex.ShapeType>(Vertex.ShapeType.values());
+        private final JComboBox<Vertex> comboVertex = new JComboBox<Vertex>();
+        private final JLabel color = new JLabel();
+        private final JSpinner spinnerInt = new JSpinner(new SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        private final JSpinner spinnerIntx = new JSpinner(new SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        private final JSpinner spinnerInty = new JSpinner(new SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        private final JSpinner spinnerDouble = new JSpinner(new SpinnerNumberModel(Double.valueOf(0), null, null, Double.valueOf(1)));
+        private final JTextField charField = new JTextField();
+        private final JPanel point = new JPanel();
+        private final CollectionEditor coll;
         
         private Component active;
+        private final ArrayList<Component> focus = new ArrayList<Component>();
         
         private Timer autostop = new Timer();
-        
-        class Listener implements FocusListener, ActionListener, DocumentListener, ChangeListener {
-
-//            private boolean time = false;
+                
+        class Listener implements FocusListener, ActionListener, ChangeListener, KeyListener, MouseListener {
             
             @Override
             public void focusGained(FocusEvent e) {
-                if (e.getSource() instanceof JComboBox) autostop.cancel();
+                if (e.getSource() instanceof JComboBox) {
+                    autostop.cancel();
+                } else {
+                    startTimer();
+                }
             }
-
+ 
             @Override
             public void focusLost(FocusEvent e) {
-                if (e.getComponent().getParent() != null && e.getComponent().getParent().getParent() instanceof JSpinner) {
-                    JSpinner spinner = (JSpinner) e.getComponent().getParent().getParent();
-                    if (e.getOppositeComponent().getParent() != null && e.getOppositeComponent().getParent().getParent() instanceof JSpinner) {
-                        JSpinner spinner2 = (JSpinner) e.getOppositeComponent().getParent().getParent();
-                        if (spinner.getParent() == point && spinner2.getParent() == point) {
-                            return;
-                        }
+                    if (autostop != null) {
+                        autostop.cancel();
                     }
-                }
-//                if (time) {
-                    if (stopCellEditing());
-                    else cancelCellEditing();
-//                    time = false;
-//                }
+                    if (!(e.getOppositeComponent() instanceof JTable) && !focus.contains(e.getOppositeComponent())) {
+                        stopCellEditing();
+                    }
             }
 
             @Override
@@ -100,40 +98,63 @@ public class UniversalTableCellEditor extends AbstractCellEditor implements Tabl
             }
 
             private void startTimer() {
-                
                 autostop.cancel();
                 autostop = new Timer();
                 autostop.schedule(new TimerTask() {
                             @Override
                             public void run() {
-                                if (stopCellEditing());
-                                else cancelCellEditing();
-                                //jTable1.requestFocusInWindow();
-                                
+                                stopCellEditing();
                             }
-                        }, 2000);
+                        }, 3000);
             }
             
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                startTimer();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                startTimer();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                startTimer();
-            }
 
             @Override
             public void stateChanged(ChangeEvent e) {
                 if (e.getSource() instanceof JSpinner) {
                     ((JSpinner.DefaultEditor) ((JSpinner)e.getSource()).getEditor()).getTextField().requestFocusInWindow();
+                    startTimer();
                 }
+            }
+
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                startTimer();
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                startTimer();
+            }
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (autostop != null) autostop.cancel();
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                startTimer();
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                
             }
             
         } 
@@ -143,29 +164,6 @@ public class UniversalTableCellEditor extends AbstractCellEditor implements Tabl
             point.add(spinnerIntx);
             point.add(new JLabel(", "));
             point.add(spinnerInty);
-            comboVertex.setModel(new ComboBoxModels.VertexComboBoxModel(g));
-            comboVertex.setRenderer(new ComboBoxModels.ElementComboBoxRenderer());
-            Listener listener = new Listener();
-            comboVertex.addFocusListener(listener);
-            comboVertex.addActionListener(listener);
-            comboPath.addFocusListener(listener);
-            comboPath.addActionListener(listener);
-            comboShape.addFocusListener(listener);
-            comboShape.addActionListener(listener);
-            text.addFocusListener(listener);
-            text.getDocument().addDocumentListener(listener);
-            spinnerInt.addChangeListener(listener);
-            ((JSpinner.DefaultEditor)spinnerInt.getEditor()).getTextField().addFocusListener(listener);
-            ((JSpinner.DefaultEditor)spinnerInt.getEditor()).getTextField().getDocument().addDocumentListener(listener);
-            spinnerDouble.addChangeListener(listener);
-            ((JSpinner.DefaultEditor)spinnerDouble.getEditor()).getTextField().addFocusListener(listener);
-            ((JSpinner.DefaultEditor)spinnerDouble.getEditor()).getTextField().getDocument().addDocumentListener(listener);
-            spinnerIntx.addChangeListener(listener);
-            ((JSpinner.DefaultEditor)spinnerIntx.getEditor()).getTextField().addFocusListener(listener);
-            ((JSpinner.DefaultEditor)spinnerIntx.getEditor()).getTextField().getDocument().addDocumentListener(listener);
-            spinnerInty.addChangeListener(listener);
-            ((JSpinner.DefaultEditor)spinnerInty.getEditor()).getTextField().addFocusListener(listener);
-            ((JSpinner.DefaultEditor)spinnerInty.getEditor()).getTextField().getDocument().addDocumentListener(listener);
             ((AbstractDocument)charField.getDocument()).setDocumentFilter(new DocumentFilter(){
                 @Override
                 public void insertString(DocumentFilter.FilterBypass fb, int offset,
@@ -180,9 +178,32 @@ public class UniversalTableCellEditor extends AbstractCellEditor implements Tabl
                 }
                 
             });
-            charField.getDocument().addDocumentListener(listener);
-            charField.addFocusListener(listener);
-            coll = new CollectionEditor(g);
+            coll = new CollectionEditor(g);            
+            comboVertex.setModel(new ComboBoxModels.VertexComboBoxModel(g));
+            comboVertex.setRenderer(new ComboBoxModels.ElementComboBoxRenderer());
+            Listener listener = new Listener();
+            focus.add(comboVertex);
+            focus.add(comboPath);
+            focus.add(comboPath);
+            focus.add(comboShape);
+            focus.add(text);
+            focus.add(((JSpinner.DefaultEditor)spinnerInt.getEditor()).getTextField());
+            focus.add(((JSpinner.DefaultEditor)spinnerIntx.getEditor()).getTextField());
+            focus.add(((JSpinner.DefaultEditor)spinnerInty.getEditor()).getTextField());
+            focus.add(((JSpinner.DefaultEditor)spinnerDouble.getEditor()).getTextField());
+            for (Component c: focus) {
+                c.addFocusListener(listener);
+                if (c instanceof JComboBox) {
+                    ((JComboBox)c).addActionListener(listener);
+                } else {
+                    c.addKeyListener(listener);
+                    c.addMouseListener(listener);
+                }
+            }
+            spinnerInt.addChangeListener(listener);
+            spinnerIntx.addChangeListener(listener);
+            spinnerInty.addChangeListener(listener);
+            spinnerDouble.addChangeListener(listener);
         }
         
         
@@ -231,13 +252,8 @@ public class UniversalTableCellEditor extends AbstractCellEditor implements Tabl
                 spinnerInty.setValue(((Point)value).y);
                 active =  point;
             } else if (value instanceof Vertex) {
-                //if (table.getModel() instanceof ObjectInspectorTableModel) {
-                    comboVertex.setSelectedItem(value);
-                    active =  comboVertex;
-                //} else {
-                //    text.setText(((Vertex)value).getName());
-                //    active = text;
-                //}
+                comboVertex.setSelectedItem(value);
+                active =  comboVertex;
             } else if (value instanceof Edge) {
                 text.setText(((Edge)value).getLabel().getText());
                 active = text;

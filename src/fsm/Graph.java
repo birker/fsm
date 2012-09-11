@@ -34,7 +34,7 @@ public class Graph extends Observable implements Serializable {
     //Default Values Edge
     private Edge.PathMode defPathMode = Edge.PathMode.QUADRATIC_BEZIER;
     private Color defEdgeColor = Color.BLACK;
-    private boolean defEdgeLabelRot = true;
+    private boolean defEdgeLabelRot = false;
     private boolean defDirected = true;
     //Default Values Vertex
     private Color defVertexColor = Color.BLACK;
@@ -173,7 +173,7 @@ public class Graph extends Observable implements Serializable {
     }
 
     public Vertex addVertex(Point position) {
-        Vertex n = new Vertex(this, getDefVertexShape(), position, "v_{"+vertices.size()+"}");
+        Vertex n = new Vertex(this, position, "v_{"+vertices.size()+"}");
         vertices.add(n);
         //notifyObservers();
         return n;
@@ -196,7 +196,7 @@ public class Graph extends Observable implements Serializable {
     public void removeVertex(Vertex n) {
         if (choice == n) choice = null;
         active.remove(n);
-        for (Edge e: (ArrayList<Edge>) edges.clone()) {
+        for (Edge e: new ArrayList<Edge>(edges)) {
             if (e.getFrom() == n || e.getTo() == n) removeEdge(e);
         }
         vertices.remove(n);
@@ -236,6 +236,7 @@ public class Graph extends Observable implements Serializable {
             }
             }
             n.getShape().setFrame(x,y,n.getShape().getWidth(),n.getShape().getHeight());
+            n.updateLabel();
         }
         for (Edge e: getEdges()) {
             e.rebuildPath();                

@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,15 +20,6 @@ import java.util.logging.Logger;
  */
 public class Fsm extends Graph {
     private static final long serialVersionUID = 2345541351034924476L;
-    
-    public enum DistanceType {
-        HAMMING, LEVENSHTEIN, DAMERAU;
-        static public DistanceType getByNumber(int i) {
-            if (i%3==0) return HAMMING;
-            else if (i%3==1) return LEVENSHTEIN;
-            else return DAMERAU;
-        }
-    }
     
     public enum EpsEliminationType {
         FROM_LEFT, FROM_RIGHT, FROM_BOTH;
@@ -45,8 +35,7 @@ public class Fsm extends Graph {
     private HashMap<Character, String> shortSymbols = new HashMap<Character,String>(); //a list of short cuts (e.g. x (char) stands for 0 or 1 (String: 01)); should work in Blocks, too.
     
     //for universial levenshtein automatas, we have to be able to read input in blocks. 0 should be automatic
-    private int blocksize = 1;
-    //private int simNonDeterminism
+    private int blocksize = 0;
     
     //Simulation etc.
     private ArrayList<Element> activeEps = new ArrayList<Element>();
@@ -57,7 +46,7 @@ public class Fsm extends Graph {
     
     @Override
     public Vertex addVertex(Point position) {
-        Vertex n = new Vertex(this, getDefVertexShape(), position, "q_{"+getVertices().size()+"}");
+        Vertex n = new Vertex(this, position, "q_{"+getVertices().size()+"}");
         getVertices().add(n);
         return n;
     }
@@ -259,7 +248,7 @@ public class Fsm extends Graph {
     public boolean nextStep() {
         boolean ready = true;
         getActive().clear();          
-        for (ArrayList<Configuration> sim: (ArrayList<ArrayList<Configuration>>) simulation.clone()) {
+        for (ArrayList<Configuration> sim: new ArrayList<ArrayList<Configuration>>(simulation)) {
             Configuration c = sim.get(sim.size()-1);
             ArrayList<Configuration> next = c.nextConfigurations();
             if (next.isEmpty()) continue;      
@@ -273,7 +262,7 @@ public class Fsm extends Graph {
                     }
                     i--;
                 }
-                ArrayList<Configuration> newSim = ((ArrayList<Configuration>) sim.clone());
+                ArrayList<Configuration> newSim = new ArrayList<Configuration>(sim);
                 newSim.add(d);
                 simulation.add(newSim);
                 getActive().add(d.q);
@@ -310,157 +299,6 @@ public class Fsm extends Graph {
     public void stopSimulation() {
         getActive().clear();
         simulation.clear();
-    }
-    ///////////////////////Dinstance Automata//////////////////////////////////
-     
-    /**
-     * Computes a distance automaton (Hamming, Levenshtein, Damerau-Levenshtein) of the 
-     * specified distance for a certain strin pattern. Only Hamming is deterministic.
-     * Note: The distance between two strings is defined as the minimum number of edits
-     * needed to transform one string into the other, with the allowable edit operations being 
-     * substitution (Hamming, Levenshtein, Damerau-Levenshtein), insertion and deletion
-     * (Levensheitn, Damerau-Levenshtein) of a single character
-     * and transposition of neighboured characters (Damerau-Levenshtein). [edited from wikipedia]
-     * @param distance the number of "mistakes" that are allowed.
-     * @param pattern the string without "mistakes"
-     * @param type 0: Hamming
-     *             2: Levenshtein
-     *             3: Damerau-Levenshtein
-     * @return the computed distance automaton
-     */
-    public static Fsm distanceAutomaton(int distance, String pattern, DistanceType type) {
-        //TODO damerau levenshtein
-        Fsm fsm = new Fsm();
-        for (int i=0; i <= distance; i++) {
-            for (int j = 0; j <= pattern.length(); j++) {
-                    Vertex n = fsm.addVertex(new Point(30+j*3*(int)fsm.getDefVertexShape().getWidth(),10+(distance-i)*3*(int)fsm.getDefVertexShape().getHeight()));
-                    n.setName(i+"-"+j);
-                    if (j==pattern.length()) n.setFinal(true);
-                    if (j>0) {
-                        EdgeFsm e = fsm.addEdge(fsm.getVertices().get(fsm.getVertices().size()-2), n);
-                        e.getTransitions().add(""+pattern.charAt(j-1));
-                        e.setText();
-                    }
-                    if (j>0 && i>0) {
-                        EdgeFsm e = fsm.addEdge(fsm.getVertices().get((i-1)*(pattern.length()+1)+j-1), n);
-                        e.getTransitions().add(""+fsm.getElseSymbol());
-                        e.setText();
-                    }
-                    if (type == DistanceType.LEVENSHTEIN || type == DistanceType.DAMERAU) {
-                        if (j>0 && i>0) {
-                            EdgeFsm e = (EdgeFsm) fsm.getEdges().get(fsm.getEdges().size()-1);
-                            e.getTransitions().add(""+fsm.getEpsSymbol());
-                            e.setText();
-                        }
-                        if (i>0) {
-                            EdgeFsm e = fsm.addEdge(fsm.getVertices().get((i-1)*(pattern.length()+1)+j), n);
-                            e.getTransitions().add(""+fsm.getElseSymbol());
-                            e.setText();
-                        }
-                    }
-            }
-        }
-        if (type==DistanceType.HAMMING) {
-            for (int i = distance; i>0; i--) {
-                for (int j = i-1; j >= 0; j--) {
-                    fsm.removeVertex(fsm.getVertices().get(i*(pattern.length()+1)+j));
-                }
-            }
-        }
-        fsm.getVertices().get(0).setInitial(true);
-        return fsm;
-    }
-    
-    private static StringBuilder prepareString(int k) {
-        StringBuilder s = new StringBuilder(2*k+1);
-        for (int j = -k; j<=k; j++) {
-            s.append('_');
-        }
-        return s;
-    }   
-    
-    /**
-     * Returnes a _universial_ Hamming Automaton of the specified distance.
-     * The automaton is deterministic and has no practical use, as the
-     * efford of the required encoding is greater then the computation of the distance itself.
-     * Note: The input has to be encoded, e.g. with the InputCoder class.
-     * Note: Use powerset construction to get a deterministic version.
-     * Note: The Hamming distance between two strings is defined as the minimum number of edits
-     * needed to transform one string into the other, with the allowable edit operations being 
-     * only substitution of a single character. [edited from wikipedia]
-     * @param distance the number of "mistakes" that are allowed.
-     * @return the computed non deterministic universial Levenshtein Automaton
-     */
-    public static Fsm uniHamming(int distance) {
-        Fsm fsm = new Fsm();
-        for (int i=0; i <= distance; i++) {
-            Vertex n = fsm.addVertex(new Point(30+i*3*(int)fsm.getDefVertexShape().getWidth(),10));
-            n.setName("I^{"+i+"}");
-            n.setFinal(true);
-            EdgeFsm e = fsm.addEdge(n, n);
-            e.getTransitions().add("1");
-            e.setText();
-            if (i>0) {
-                e = fsm.addEdge(fsm.getVertices().get(fsm.getVertices().size()-2), n);
-                e.getTransitions().add("0");
-                e.setText();
-            }
-        }
-        fsm.getVertices().get(0).setInitial(true);
-        return fsm;
-    }
-    
-    /**
-     * Returns a _universial_ non deterministic Levenshtein Automaton of the specified distance.
-     * Note: The input has to be encoded, e.g. with the InputCoder class.
-     * Note: Use powerset construction to get a deterministic version.
-     * Note: The Levenshtein distance between two strings is defined as the minimum number of edits
-     * needed to transform one string into the other, with the allowable edit operations being 
-     * insertion, deletion, or substitution of a single character. [from wikipedia]
-     * @param distance the number of "mistakes" that are allowed.
-     * @return the computed non deterministic Levenshtein Automaton
-     */
-    public static Fsm uniNLevenshtein(int distance) {
-        Fsm fsm = new Fsm();
-        fsm.getShortSymbols().put('_', "01");
-        fsm.setBlocksize(distance*2+1);
-        for (int i=0; i <= distance; i++) {
-            for (int j = -i; j<=i; j++) {
-                Vertex n = fsm.addVertex(new Point(30+i*3*(int)fsm.getDefVertexShape().getWidth(),10+(distance+j)*2*(int)fsm.getDefVertexShape().getHeight()));
-                n.setName("I"+(j==0?"":(j>0?"+"+j:j))+"^{"+i+"}");
-                n.setFinal(true);
-                EdgeFsm e = fsm.addEdge(n, n);
-                e.rebuildPath();
-                e.getTransitions().add(prepareString(distance).replace(j+distance, j+distance+1, "1").toString());
-                e.setText();
-                if (i>0) {
-                    if (j < i-1) {
-                        e =fsm.addEdge(fsm.getVertices().get(fsm.getVertices().size()-2*i), n);
-                        e.getTransitions().add(prepareString(distance).replace(distance-(-j)+1, distance-(-j)+2, "0").toString());
-                        e.setText();
-                    }
-                    if (i != Math.abs(j)) {
-                        e =fsm.addEdge(fsm.getVertices().get(fsm.getVertices().size()-2*i-1), n);
-                        e.getTransitions().add(prepareString(distance).replace(distance-(-j), distance-(-j)+1, "0").toString());
-                        e.setText();                        
-                    }
-                    if (j > -i+1) {
-                        e =fsm.addEdge(fsm.getVertices().get(fsm.getVertices().size()-2*i-2), n);
-                        //e.getTransitions().add(prepareString(distance).replace(distance-(-j)-1, distance-(-j), "0").replace(distance-(-j), distance-(-j)+1, "1").toString());
-                        e.getTransitions().add(""+fsm.getEpsSymbol());
-                        e.setText();                         
-                    }
-                     
-                }
-            }
-            
-        }
-        fsm.getVertices().get(0).setInitial(true);
-        return fsm;
-    }
-    
-    public static Fsm uniNDamerau(int distance) {
-        return null;
     }
     //////////////////////Algorithms////////////////////////////////////////////
     
@@ -500,10 +338,10 @@ public class Fsm extends Graph {
                 if (type.equals(EpsEliminationType.FROM_RIGHT)) activeEps.clear();
                 activeEps.add(n);
             }
-            for (Element el: (ArrayList<Element>)activeEps.clone()) {
+            for (Element el: new ArrayList<Element>(activeEps)) {
                 if (!(el instanceof Vertex)) continue;
                 if (!type.equals(EpsEliminationType.FROM_RIGHT) && ((Vertex) el).isFinal()) n.setFinal(true);
-                for (Edge e: (ArrayList<Edge>)((Vertex) el).getEdges().clone()) {
+                for (Edge e: new ArrayList<Edge>(((Vertex) el).getEdges())) {
                     activeEps.clear();
                     if (!type.equals(EpsEliminationType.FROM_LEFT)) addSpontaniousNodes(e.getTo());
                     if (!type.equals(EpsEliminationType.FROM_RIGHT)) activeEps.add(e.getTo());
@@ -537,7 +375,6 @@ public class Fsm extends Graph {
      */
     public void removeUnnecessaryEdges() {
         for (int i = getEdges().size() - 1; i>=0; i--) {
-            System.out.println(i+" "+getEdges().get(i));
             if (((EdgeFsm)getEdges().get(i)).getTransitions().isEmpty()) {
                 removeEdge(getEdges().get(i));
             } else {
@@ -637,7 +474,7 @@ public class Fsm extends Graph {
      * but probably differently arranged.
      * @return the computed DEA
      */
-    public Fsm powersetAutomaton() {
+    public Fsm powersetAutomatonBak() {
         Fsm p = new Fsm();
         //TODO else, any, short und blöcke
         try {
@@ -646,15 +483,15 @@ public class Fsm extends Graph {
             //zu behandelnde vertices
             LinkedBlockingQueue<HashSet<Vertex>> queue = new LinkedBlockingQueue<HashSet<Vertex>>();
             //startzustand suchen
+            activeEps.clear();
             HashSet<Vertex> oldVertices = new HashSet<Vertex>();
             for (Vertex n: getVertices()) {
-                if (n.isInitial()) oldVertices.add(n);
+                if (n.isInitial()) {
+                    oldVertices.add(n);
+                    addSpontaniousNodes(n);
+                }
             }
             //spontane dazu
-            activeEps.clear();
-            for (Vertex n: oldVertices) {
-                addSpontaniousNodes(n);
-            }
             for (Element e: activeEps) {
                 if (e instanceof Vertex) oldVertices.add((Vertex) e);
             }
@@ -728,12 +565,69 @@ public class Fsm extends Graph {
         return p;
     }
     
-    private ArrayList<String> getIntersectionTrans(String s1, String s2) {
+    
+    ArrayList<String> getRemainingTrans(String s1, String s2) {
+        //if (!(parent instanceof Fsm)) return null;
+        ArrayList<String> al = new ArrayList<String>();
+        HashMap<Integer,HashSet<Character>> remain = new HashMap<Integer, HashSet<Character>>();
+        for (int i = 0; i < s1.length(); i++) {
+            if (s2.length() < i) {
+                //s2 ist kürzer, zeichen(menge) bleibt komplett erhalten
+                HashSet<Character> tmp = new HashSet<Character>();
+                tmp.add(s1.charAt(i));
+                remain.put(i, tmp);
+            } else {
+                if (s1.charAt(i) == s2.charAt(i)) {
+                    //zeichen(menge) gleich, für diese(s) zeichen(menge) bleibt nichts übrig
+                    continue;
+                } else {
+                    if (!getShortSymbols().containsKey(s1.charAt(i)) && !getShortSymbols().containsKey(s2.charAt(i))) {
+                        //keine übereinstimmung, ganzer string bleibt übrig
+                        al.add(s1);
+                        return al;
+                    }
+                    HashSet<Character> tmp = new HashSet<Character>();
+                    if (getShortSymbols().containsKey(s1.charAt(i))) {
+                        String s = getShortSymbols().get(s1.charAt(i));
+                        for (int j = 0; j < s.length(); j++) {
+                            tmp.add(s.charAt(j));
+                        }
+                    } else {
+                        tmp.add(s1.charAt(i));
+                    }
+                    if (getShortSymbols().containsKey(s2.charAt(i))) {
+                        String s = getShortSymbols().get(s2.charAt(i));
+                        for (int j = 0; j < s.length(); j++) {
+                            tmp.remove(s.charAt(j));
+                        }
+                    } else {
+                        tmp.remove(s2.charAt(i));
+                    }
+                    remain.put(i, tmp);
+                }
+            }
+        }
+        //strings bauen
+        for (int i: remain.keySet()) {
+            for (char c: remain.get(i)) {
+                String s = "";
+                for (int j = 0; j < s2.length(); j++) {
+                    if (i == j) s += c;
+                    else s += s1.charAt(j);                           
+                }
+                al.add(s);
+            }
+        }
+        return al;
+    }
+    
+    ArrayList<String> getIntersectionTrans(String s1, String s2) {
+        //if (!(parent instanceof Fsm)) return null;
         ArrayList<String> result = new ArrayList<String>();
         letter: for (int i = 0; i < Math.min(s1.length(),s2.length()); i++) {
             if (s1.charAt(i)==s2.charAt(i)) {
                 if (i == 0) result.add(""+s1.charAt(i));
-                else for (String s: (ArrayList<String>) result.clone()) {
+                else for (String s: new ArrayList<String>(result)) {
                     result.remove(s);
                     result.add(s.concat(""+s1.charAt(i)));
                 }
@@ -742,7 +636,7 @@ public class Fsm extends Graph {
                 if (!getShortSymbols().containsKey(s1.charAt(i)) && !getShortSymbols().containsKey(s2.charAt(i))) return null;
                 //beide shortsymbol --> gegenseitig testen
                 boolean found = false;
-                ArrayList<String> list = (ArrayList<String>) result.clone();
+                ArrayList<String> list = new ArrayList<String>(result);
                 if (getShortSymbols().containsKey(s1.charAt(i)) && getShortSymbols().containsKey(s2.charAt(i))) {
                     for (int j = 0; j < getShortSymbols().get(s1.charAt(i)).length(); j++ ) {
                         for (int k = 0; k < getShortSymbols().get(s2.charAt(i)).length(); k++) {
@@ -763,7 +657,7 @@ public class Fsm extends Graph {
                         for (int j = 0; j < getShortSymbols().get(s1.charAt(i)).length(); j++) {
                             if (getShortSymbols().get(s1.charAt(i)).charAt(j)==s2.charAt(i)) {
                                 if (i == 0) result.add(""+s2.charAt(i));
-                                else for (String s: (ArrayList<String>) result.clone()) {
+                                else for (String s: new ArrayList<String>(result)) {
                                     result.remove(s);
                                     result.add(s.concat(""+s2.charAt(i)));
                                 }
@@ -775,7 +669,7 @@ public class Fsm extends Graph {
                         for (int j = 0; j < getShortSymbols().get(s2.charAt(i)).length(); j++) {
                             if (getShortSymbols().get(s2.charAt(i)).charAt(j)==s1.charAt(i)) {
                                 if (i == 0) result.add(""+s1.charAt(i));
-                                else for (String s: (ArrayList<String>) result.clone()) {
+                                else for (String s: new ArrayList<String>(result)) {
                                     result.remove(s);
                                     result.add(s.concat(""+s1.charAt(i)));
                                 }
@@ -788,8 +682,132 @@ public class Fsm extends Graph {
             }
         }
         return result;
+    }    
+    
+     
+    public Fsm powersetAutomaton() {
+        for (Vertex v: getVertices()) {
+            v.calcReachable();     
+            System.out.println(v.reachable);
+        }
+        Fsm p = new Fsm();
+        HashMap<HashSet<Vertex>,Vertex> metastatemap = new HashMap<HashSet<Vertex>, Vertex>();
+        LinkedBlockingQueue<HashSet<Vertex>> queue = new LinkedBlockingQueue<HashSet<Vertex>>();
+        HashSet<Vertex> oldVertices = getInitialStates();
+        Vertex newVertex = p.addVertex(new Point(100,100));
+        newVertex.setInitial(true);
+        newVertex.setName(getPowersetName(oldVertices));
+        metastatemap.put(oldVertices, newVertex);
+        queue.add(oldVertices);
+        while (!queue.isEmpty()) {
+            oldVertices = queue.poll();
+            newVertex = metastatemap.get(oldVertices);
+            HashMap<String,HashSet<Vertex>> trans = new HashMap<String, HashSet<Vertex>>();
+            for (Vertex v: oldVertices) { //transitions zusammenfassen
+                if (v.reachable.keySet().contains(""+getAnySymbol()) && v.reachable.keySet().contains(""+getElseSymbol())) {
+                    v.reachable.remove(""+getElseSymbol());
+                }
+                for (String t: v.reachable.keySet()) {
+                    //if (t.equals(""+getElseSymbol()) && v.reachable.keySet().contains(""+getAnySymbol())) continue;
+                    boolean found = false;
+                    for (String s: new HashSet<String>(trans.keySet())) {
+                        if (s.equals(t)) {
+                            trans.get(t).addAll(v.reachable.get(s));
+                            found = true;
+                        }
+                        else {
+                            ArrayList<String> intersection = getIntersectionTrans(s, t);
+                            if (intersection != null && !intersection.isEmpty()) {
+                                System.out.println("intersection");
+                                HashSet<Vertex> tmp = trans.get(s);
+                                trans.remove(s);
+                                //rest 1
+                                ArrayList<String> remain = getRemainingTrans(s, t);
+                                for (String u: remain) {
+                                    HashSet<Vertex> tmp2 = new HashSet<Vertex>(tmp);
+                                    if (trans.containsKey(u)) {
+                                        tmp2.addAll(trans.get(u));
+                                    }
+                                    trans.put(u, tmp2);
+                                }
+                                //intersection
+                                tmp.addAll(v.reachable.get(t));
+                                for (String u: intersection) {
+                                    HashSet<Vertex> tmp2 = new HashSet<Vertex>(tmp);
+                                    if (trans.containsKey(u)) {
+                                        tmp2.addAll(trans.get(u));
+                                    }
+                                    trans.put(u, tmp2);
+                                }
+                                //rest 2
+                                remain = getRemainingTrans(t, s);
+                                for (String u: remain) {
+                                    tmp = new HashSet<Vertex>(v.reachable.get(t));
+                                    if (trans.containsKey(u)) {
+                                        tmp.addAll(trans.get(u));
+                                    }
+                                    trans.put(u, tmp);
+                                }
+                                found = true;
+                            }
+                        }
+                    }
+                    if (!found) {
+                        trans.put(t, new HashSet<Vertex>(v.reachable.get(t)));
+                    }
+                }
+            }
+            //any und else behandeln
+            for (Vertex v: oldVertices) {
+                boolean els = v.reachable.containsKey(""+getElseSymbol());
+                boolean any = v.reachable.containsKey(""+getAnySymbol());
+                if (els || any) {
+                    for (String t: trans.keySet()) {
+                        //anyübergänge an jeden knoten geben
+                        if (any) trans.get(t).addAll(v.reachable.get(""+getAnySymbol()));
+                        //elseübergänge an alle übergänge der anderen knoten geben
+                        if (els && !v.reachable.containsKey(t)) trans.get(t).addAll(v.reachable.get(""+getElseSymbol()));
+                    }
+                }
+            }
+            if (trans.containsKey(""+getAnySymbol())) {
+                HashSet<Vertex> tmp = trans.remove(""+getAnySymbol());
+                if (trans.containsKey(""+getElseSymbol())) {
+                    trans.get(""+getElseSymbol()).addAll(tmp);
+                } else {
+                    trans.put(""+getElseSymbol(), tmp);
+                }
+            }
+            //kanten anlegen und ggf. zustände bauen
+            for (String t: trans.keySet()) {
+                if (!metastatemap.containsKey(trans.get(t))) {
+                    int x = (int)newVertex.getShape().getX()+3*newVertex.getPreferredWidth();
+                    int y = (int)newVertex.getShape().getY();
+                    while (p.getVertexByPosition(new Point(x+(int)newVertex.getShape().getWidth()/2,y+(int)newVertex.getShape().getHeight()/2))!=null) y +=  3*(int)newVertex.getShape().getHeight();
+                    Vertex v = p.addVertex(new Point(x,y));
+                    for (Vertex n: trans.get(t)) {
+                        if (n.isFinal()) {
+                            v.setFinal(true);
+                            break;
+                        }
+                    }
+                    v.setName(getPowersetName(trans.get(t)));
+                    metastatemap.put(trans.get(t), v);
+                    try {
+                        queue.put(trans.get(t));
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(Fsm.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                EdgeFsm e = p.addEdge(newVertex, metastatemap.get(trans.get(t)));
+                e.getTransitions().add(t);
+                e.setText();
+            }
+        }
+        p.removeUnnecessaryEdges();
+        return p;
     }
-        
+    
     public void transformToDualAutomaton() {
         for (Vertex n: getVertices()) {
             if (n.isInitial()) {
@@ -852,7 +870,7 @@ public class Fsm extends Graph {
         return letters;
     }
     
-    public String calcAlphabethString(boolean delimiter) {
+    public String calcAlphabeth(boolean delimiter) {
         String result = "";
         for (Character c: calcAlphabet()) {
             result += c;
@@ -869,13 +887,15 @@ public class Fsm extends Graph {
      * @return if the automaton is deterministic
      */
     public boolean isDeterministic() {
+        ArrayList<Element> activeBak= new ArrayList<Element>(getActive());
+        ArrayList<ArrayList<Configuration>> simulationBak = new ArrayList<ArrayList<Configuration>>(simulation);
         boolean starting = false;
         for (Vertex n: getVertices()) {
             if (n.isInitial()) {
                 if (starting) return false;
                 else starting = true;
             }
-            activeEps.clear();
+            /*activeEps.clear();
             activeEps.add(n);
             addSpontaniousNodes(n);
             HashMap<String,Vertex> trans = new HashMap<String,Vertex>();
@@ -901,8 +921,32 @@ public class Fsm extends Graph {
                         trans.put(s, e.getTo());
                     }
                 }
+            }*/
+            //TODO: shortsymbols und besondere symbole müssen übersetzt werden!
+            for (Edge e: n.getEdges()) {
+                for (String t: ((EdgeFsm)e).getTransitions()) {
+                    //getActive().clear();
+                    simulation.clear();
+                    getActive().clear();
+                    ArrayList<Configuration> al = new ArrayList<Configuration>();
+                    al.add(new Configuration(this, n, t));
+                    simulation.add(al);
+                    getActive().add(n);
+                    while (!nextStep()) {}
+                    if (getActive().size()>1) {
+                        getActive().clear();
+                        getActive().addAll(activeBak);
+                        simulation.clear();
+                        simulation.addAll(simulationBak);
+                        return false;
+                    }
+                }
             }
         }
+        getActive().clear();
+        getActive().addAll(activeBak);
+        simulation.clear();
+        simulation.addAll(simulationBak);
         return true;
     }
     
@@ -914,7 +958,7 @@ public class Fsm extends Graph {
     public boolean isComplete() {
         HashSet<Character> alpha = calcAlphabet();
         v: for (Vertex n: getVertices()) {
-            HashSet<Character> alpha2 = (HashSet<Character>) alpha.clone();
+            HashSet<Character> alpha2 = new HashSet<Character>(alpha);
             for (Edge e: n.getEdges()) {
                 for (String s: ((EdgeFsm)e).getTransitions()) {
                     if (s.equals(""+getAnySymbol())||s.equals(""+getElseSymbol())) continue v;
@@ -961,16 +1005,16 @@ public class Fsm extends Graph {
         }
     }
     
-    public ArrayList<Vertex> getInitialStates() {
-        ArrayList<Vertex> result = new ArrayList<Vertex>();
+    public HashSet<Vertex> getInitialStates() {
+        HashSet<Vertex> result = new HashSet<Vertex>();
         for (Vertex n: getVertices()) {
             if (n.isInitial()) result.add(n);
         }
         return result;
     }
     
-    public ArrayList<Vertex> getFinalStates() {
-        ArrayList<Vertex> result = new ArrayList<Vertex>();
+    public HashSet<Vertex> getFinalStates() {
+        HashSet<Vertex> result = new HashSet<Vertex>();
         for (Vertex n: getVertices()) {
             if (n.isFinal()) result.add(n);
         }

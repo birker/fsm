@@ -70,6 +70,9 @@
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jComboBox1ActionPerformed"/>
       </Events>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;Object&gt;"/>
+      </AuxValues>
     </Component>
     <Container class="javax.swing.JScrollPane" name="jScrollPane1">
       <Properties>
@@ -100,9 +103,6 @@
           <Events>
             <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="jTable1FocusLost"/>
           </Events>
-          <AuxValues>
-            <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="jTable1.setDefaultRenderer(Object.class, new UniversalTableCellRenderer());&#xa;jTable1.setDefaultEditor(Object.class, new UniversalTableCellEditor(g));&#xa;//((fsm.gui.ObjectInspectorTableModel)jTable1.getModel())."/>
-          </AuxValues>
         </Component>
       </SubComponents>
     </Container>

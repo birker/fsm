@@ -45,7 +45,7 @@ private static final long serialVersionUID = 1L;
         ColorNames.put(new Color(0,128,128), "aquamarin");
     }
     
-    private Graph g;
+    private final Graph g;
     
     /**
      * Creates new form ObjectInspector
@@ -53,7 +53,8 @@ private static final long serialVersionUID = 1L;
     public ObjectInspector(Graph g) {
         this.g = g;
         initComponents();
-        //jTable1.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+        jTable1.setDefaultRenderer(Object.class, new UniversalTableCellRenderer());
+        jTable1.setDefaultEditor(Object.class, new UniversalTableCellEditor(g));
     }
 
     /**
@@ -65,7 +66,7 @@ private static final long serialVersionUID = 1L;
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jComboBox1 = new javax.swing.JComboBox();
+        jComboBox1 = new javax.swing.JComboBox<Object>();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
         jButton1 = new javax.swing.JButton();
@@ -87,13 +88,10 @@ private static final long serialVersionUID = 1L;
         jScrollPane1.setMinimumSize(new java.awt.Dimension(0, 0));
         jScrollPane1.setPreferredSize(new java.awt.Dimension(0, 23));
 
-        jTable1.setModel(new ObjectInspectorTableModel(g));
+        jTable1.setModel(new fsm.gui.ObjectInspectorTableModel(g));
         jTable1.setRowHeight(25);
         jTable1.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jTable1.setSurrendersFocusOnKeystroke(true);
-        jTable1.setDefaultRenderer(Object.class, new UniversalTableCellRenderer());
-        jTable1.setDefaultEditor(Object.class, new UniversalTableCellEditor(g));
-        //((ObjectInspectorTableModel)jTable1.getModel()).
         jTable1.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
                 jTable1FocusLost(evt);
@@ -232,18 +230,13 @@ private static final long serialVersionUID = 1L;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
-    private javax.swing.JComboBox jComboBox1;
+    private javax.swing.JComboBox<Object> jComboBox1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
     // End of variables declaration//GEN-END:variables
 
 @Override
     public void update(Observable o, Object arg) {
-        ((ObjectInspectorTableModel)jTable1.getModel()).fillData();
-        jTable1.revalidate();
-        jTable1.repaint();
-        jButton1.setEnabled(g.getChoice() != null);
-        jButton4.setEnabled(g.getChoice() != null); 
         if (g.getChoice() == null) {
             jComboBox1.setSelectedIndex(0);
             jComboBox1.revalidate();
@@ -251,6 +244,9 @@ private static final long serialVersionUID = 1L;
         } else {
             jComboBox1.setSelectedItem(g.getChoice());
         }
+        ((ObjectInspectorTableModel)jTable1.getModel()).fillData();
+        jButton1.setEnabled(g.getChoice() != null);
+        jButton4.setEnabled(g.getChoice() != null); 
     }
 
    

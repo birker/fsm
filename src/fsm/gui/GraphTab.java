@@ -41,9 +41,12 @@ public class GraphTab extends JPanel  {
         tp.add("Graph", p);
         tp.setPreferredSize(new Dimension(400,400));
         table = new TableQxQ(g);
+        g.addObserver(table);
         tp.add("QxQ Tabelle",table);
         if (g instanceof Fsm) {
             table2 = new TableQxS((Fsm)g);
+            g.addObserver(table2);
+            g.notifyObs();
             tp.add("QxS Tabelle",table2);
         }
         if (g instanceof Fsm) {

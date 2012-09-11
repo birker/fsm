@@ -62,11 +62,12 @@ public class Edge implements Serializable, Element, Cloneable {
     private String comment = "";
     private int index;//index, for constructing automaton piece by pieve.
     private JLabel label = new JLabel();
+    private boolean autoSP = true;
     private ArrayList<Point> supportPoints = new ArrayList<Point>();
     private Path2D path;
     private Path2D pathOpen;
     private static boolean perpendicular = false;
-    private static boolean autoSP = true;
+    //private static boolean autoSP = true;
     //graphical properties
     private double degIn = AUTOMATIC;
     private double degOut = AUTOMATIC;
@@ -76,32 +77,41 @@ public class Edge implements Serializable, Element, Cloneable {
     private Color color;// = defColor;
     private PathMode pathMode;// = PathMode.QUADRATIC_BEZIER;
 
-    public Edge(Graph g, Vertex from, Vertex to) {
-        this.parent = g;
-        this.from = from;
-        this.to = to;
-        if (autoSP) {
-            if (from == to) {
-                supportPoints.add(new Point((int) (from.getShape().getX() + from.getPreferredWidth() / 4), (int) (from.getShape().getCenterY() + from.getShape().getHeight())));
-                supportPoints.add(new Point((int) (from.getShape().getX() + 3 * from.getPreferredWidth() / 4), (int) (from.getShape().getCenterY() + from.getShape().getHeight())));
-            } else if (perpendicular) {
-                if (!(from.getShape().getCenterY() == to.getShape().getCenterY() && from.getShape().getCenterX() == to.getShape().getCenterX())) {
-                    supportPoints.add(new Point((int) to.getShape().getCenterX(), (int) from.getShape().getCenterY()));
-                }
-            } else { //hin und her
-                for (int i = 0; i < to.getEdges().size(); i++) {
-                    if (to.getEdges().get(i).getTo() == from) {
+    public void setAutomaticSupportPoints() {
+        if (from == to) {
+            supportPoints.clear();
+            supportPoints.add(new Point((int) (from.getShape().getX() + from.getPreferredWidth() / 4), (int) (from.getShape().getCenterY() + from.getShape().getHeight())));
+            supportPoints.add(new Point((int) (from.getShape().getX() + 3 * from.getPreferredWidth() / 4), (int) (from.getShape().getCenterY() + from.getShape().getHeight())));
+        } else if (perpendicular) {
+            if (!(from.getShape().getCenterY() == to.getShape().getCenterY() && from.getShape().getCenterX() == to.getShape().getCenterX())) {
+                supportPoints.clear();
+                supportPoints.add(new Point((int) to.getShape().getCenterX(), (int) from.getShape().getCenterY()));
+            }
+        } else { //hin und her
+            for (Edge e: to.getEdges()) {
+                if (e.getTo() == from) {
+                    if (e.isAutoSP()) {
+                        supportPoints.clear();
                         Point p = new Point((int) (0.5 * (to.getShape().getCenterX() - from.getShape().getCenterX())), (int) (0.5 * (to.getShape().getCenterY() - from.getShape().getCenterY())));
                         double l = p.distance(0, 0);
                         supportPoints.add(new Point((int) (to.getShape().getCenterX() - p.x + p.y / l * 10), (int) (to.getShape().getCenterY() - p.y - p.x / l * 20)));
-                        if (to.getEdges().get(i).getSupportPoints().isEmpty()) {
-                            to.getEdges().get(i).getSupportPoints().add(new Point((int) (to.getShape().getCenterX() - p.x - p.y / l * 10), (int) (to.getShape().getCenterY() - p.y + p.x / l * 20)));
-                            to.getEdges().get(i).rebuildPath();
-                        }
+                        e.getSupportPoints().clear();
+                        e.getSupportPoints().add(new Point((int) (to.getShape().getCenterX() - p.x - p.y / l * 10), (int) (to.getShape().getCenterY() - p.y + p.x / l * 20)));
+                        e.setAutoSP(false);
+                        e.rebuildPath();
+                        e.setAutoSP(true);
                     }
                 }
             }
         }
+        autoSP = true;
+    }
+    
+    public Edge(Graph g, Vertex from, Vertex to) {
+        this.parent = g;
+        this.from = from;
+        this.to = to;
+        //rebuildPath();
         setDefaultValues();
     }
 
@@ -113,14 +123,6 @@ public class Edge implements Serializable, Element, Cloneable {
         Edge.perpendicular = perpendicular;
     }
 
-    public static boolean isAutoSP() {
-        return autoSP;
-    }
-
-    public static void setAutoSP(boolean autoSP) {
-        Edge.autoSP = autoSP;
-    }
-
     ////////////////////////////Getter and Setter///////////////////////////////
     //sollte readonly sein. nur zum malen;
     public Path2D getPath(boolean closed) {
@@ -129,6 +131,14 @@ public class Edge implements Serializable, Element, Cloneable {
         } else {
             return pathOpen;
         }
+    }
+
+    public boolean isAutoSP() {
+        return autoSP;
+    }
+
+    public void setAutoSP(boolean autoSP) {
+        this.autoSP = autoSP;
     }
 
     public Vertex getFrom() {
@@ -293,23 +303,24 @@ public class Edge implements Serializable, Element, Cloneable {
     }
 
     static private Point2D getIntersectionPoint(Point2D p, RectangularShape s) {
+        if (p.getX() == s.getCenterX() && p.getY() == s.getCenterY()) {
+            p.setLocation(p.getX(), p.getY()+0.2);
+        }
         Point2D line = new Point2D.Double(p.getX() - s.getCenterX(), p.getY() - s.getCenterY());
         //normalize line (so length is 1 and we can walk pixel by pixel)
         double length = Math.abs(Math.abs(line.getX()) > Math.abs(line.getY()) ? line.getX() : line.getY());
-        if (length == 0) {
-            line.setLocation(0, 1); //if we're right at the center walk downwards
-        } else {
-            line.setLocation(line.getX() / length, line.getY() / length);
-        }
-        //get starting point
+        line.setLocation(line.getX() / length, line.getY() / length);
         double x = (Math.abs(line.getX()) > Math.abs(line.getY()) ? s.getWidth() / 2 : s.getHeight() / 2);
         Point2D q = new Point2D.Double(s.getCenterX() + line.getX() * x, s.getCenterY() + line.getY() * x);
         //while outside walk to the center
-        while (!s.contains(q)) {
+        double dist = q.distanceSq(s.getCenterX(), s.getCenterY());
+        while (!s.contains(q) && q.distanceSq(s.getCenterX(), s.getCenterY()) <= dist) {
+            dist = q.distanceSq(s.getCenterX(), s.getCenterY());
             q.setLocation(q.getX() - line.getX(), q.getY() - line.getY());
         }
         //walk just outside the border
-        while (s.contains(q)) {
+        while (s.contains(q) && q.distanceSq(s.getCenterX(), s.getCenterY()) >= dist) {
+            dist = q.distanceSq(s.getCenterX(), s.getCenterY());
             q.setLocation(q.getX() + line.getX(), q.getY() + line.getY());
         }
         return q;
@@ -326,7 +337,9 @@ public class Edge implements Serializable, Element, Cloneable {
     }
 
     public void rebuildPath() {
-        //Iterator<Point> itr = supportPoints.iterator();
+        if (isAutoSP()) {
+            setAutomaticSupportPoints();
+        }
         ListIterator<Point> itr = supportPoints.listIterator();
         Point2D element;
         //starting point
@@ -335,24 +348,22 @@ public class Edge implements Serializable, Element, Cloneable {
         } else if (!supportPoints.isEmpty()) {
             element = supportPoints.get(0);
         } else {
-            element = new Point2D.Double(to.getShape().getCenterX(), to.getShape().getCenterY() + 0.1);
+            element = new Point2D.Double(to.getShape().getCenterX(), to.getShape().getCenterY());
         }
-
+        element.setLocation(element.getX(),element.getY()+0.2);
         Point2D start = getIntersectionPoint(element, from.getShape());
+        start.setLocation(start.getX() + 0.2, start.getY());
         //finish point
         if (!isDegInAutomatic()) {
             element = new Point2D.Double(to.getShape().getCenterX() + Math.cos(getDegIn() * Math.PI / 180), to.getShape().getCenterY() + Math.sin(degIn * Math.PI / 180));
         } else if (!supportPoints.isEmpty()) {
             element = supportPoints.get(supportPoints.size() - 1);
         } else {
-            element = new Point2D.Double(from.getShape().getCenterX(), from.getShape().getCenterY() - 0.1);
+            element = new Point2D.Double(from.getShape().getCenterX(), from.getShape().getCenterY());
         }
+        element.setLocation(element.getX(),element.getY()-0.2);
         Point2D finish = getIntersectionPoint(element, to.getShape());
-
-        if (start.equals(finish) && supportPoints.isEmpty()) {
-            System.err.println("achtung");
-        }
-
+        finish.setLocation(finish.getX()-0.2, finish.getY());
         path = new Path2D.Float();
         element = start;
         path.moveTo(element.getX(), element.getY());
@@ -432,7 +443,6 @@ public class Edge implements Serializable, Element, Cloneable {
             }
         }
         path.closePath();
-
         if (supportPoints.isEmpty()) {
             repositionLabel(start, finish);
         } else {

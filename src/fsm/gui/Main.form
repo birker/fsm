@@ -229,7 +229,7 @@
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="jMenuItem7">
               <Properties>
-                <Property name="label" type="java.lang.String" value="Graph am Raster ausrichten"/>
+                <Property name="text" type="java.lang.String" value="Graph am Raster ausrichten"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItem7ActionPerformed"/>
@@ -249,7 +249,8 @@
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="jCheckBoxMenuItem5">
               <Properties>
                 <Property name="selected" type="boolean" value="true"/>
-                <Property name="label" type="java.lang.String" value="automatische Hilfspunkte"/>
+                <Property name="text" type="java.lang.String" value="automatische Hilfspunkte"/>
+                <Property name="enabled" type="boolean" value="false"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jCheckBoxMenuItem5ActionPerformed"/>
@@ -267,17 +268,17 @@
         </Menu>
         <Menu class="javax.swing.JMenu" name="jMenu6">
           <Properties>
-            <Property name="label" type="java.lang.String" value="Automat"/>
+            <Property name="text" type="java.lang.String" value="Automat"/>
           </Properties>
           <SubComponents>
             <Menu class="javax.swing.JMenu" name="jMenu7">
               <Properties>
-                <Property name="label" type="java.lang.String" value="Elimination spontaner &#xdc;berg&#xe4;nge"/>
+                <Property name="text" type="java.lang.String" value="Elimination spontaner &#xdc;berg&#xe4;nge"/>
               </Properties>
               <SubComponents>
                 <MenuItem class="javax.swing.JMenuItem" name="jMenuItem21">
                   <Properties>
-                    <Property name="label" type="java.lang.String" value="von links (default)"/>
+                    <Property name="text" type="java.lang.String" value="von links (default)"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItem21ActionPerformed"/>
@@ -285,7 +286,7 @@
                 </MenuItem>
                 <MenuItem class="javax.swing.JMenuItem" name="jMenuItem22">
                   <Properties>
-                    <Property name="label" type="java.lang.String" value="von rechts"/>
+                    <Property name="text" type="java.lang.String" value="von rechts"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItem22ActionPerformed"/>
@@ -293,7 +294,7 @@
                 </MenuItem>
                 <MenuItem class="javax.swing.JMenuItem" name="jMenuItem23">
                   <Properties>
-                    <Property name="label" type="java.lang.String" value="beidseitig"/>
+                    <Property name="text" type="java.lang.String" value="beidseitig"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItem23ActionPerformed"/>
@@ -302,13 +303,10 @@
               </SubComponents>
             </Menu>
             <Menu class="javax.swing.JMenu" name="jMenu8">
-              <Properties>
-                <Property name="label" type="java.lang.String" value="Minimierung"/>
-              </Properties>
               <SubComponents>
                 <MenuItem class="javax.swing.JMenuItem" name="jMenuItem25">
                   <Properties>
-                    <Property name="label" type="java.lang.String" value="Entfernen unerreichbarer Zust&#xe4;nde"/>
+                    <Property name="text" type="java.lang.String" value="Entfernen unerreichbarer Zust&#xe4;nde"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItem25ActionPerformed"/>
@@ -316,7 +314,7 @@
                 </MenuItem>
                 <MenuItem class="javax.swing.JMenuItem" name="jMenuItem28">
                   <Properties>
-                    <Property name="label" type="java.lang.String" value="Unn&#xf6;tige Kanten entfernen"/>
+                    <Property name="text" type="java.lang.String" value="Unn&#xf6;tige Kanten entfernen"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItem28ActionPerformed"/>
@@ -324,7 +322,7 @@
                 </MenuItem>
                 <MenuItem class="javax.swing.JMenuItem" name="jMenuItem26">
                   <Properties>
-                    <Property name="label" type="java.lang.String" value="Entfernen von unproduktiven Zust&#xe4;nden"/>
+                    <Property name="text" type="java.lang.String" value="Entfernen von unproduktiven Zust&#xe4;nden"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItem26ActionPerformed"/>
@@ -332,8 +330,8 @@
                 </MenuItem>
                 <MenuItem class="javax.swing.JMenuItem" name="jMenuItem27">
                   <Properties>
+                    <Property name="text" type="java.lang.String" value="Minimieren (f&#xfc;r DEAs)"/>
                     <Property name="enabled" type="boolean" value="false"/>
-                    <Property name="label" type="java.lang.String" value="Minimieren (f&#xfc;r DEAs)"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItem27ActionPerformed"/>
@@ -343,7 +341,7 @@
             </Menu>
             <MenuItem class="javax.swing.JMenuItem" name="jMenuItem24">
               <Properties>
-                <Property name="label" type="java.lang.String" value="Potenzmengenkonstruktion (NEA-&gt;DEA)"/>
+                <Property name="text" type="java.lang.String" value="Potenzmengenkonstruktion (NEA-&gt;DEA)"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItem24ActionPerformed"/>
@@ -367,13 +365,13 @@
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="jMenuItem43">
               <Properties>
+                <Property name="text" type="java.lang.String" value="Sprache identifizieren (Kleene, regEx)"/>
                 <Property name="enabled" type="boolean" value="false"/>
-                <Property name="label" type="java.lang.String" value="Sprache identifizieren (Kleene, regEx)"/>
               </Properties>
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="jMenuItem29">
               <Properties>
-                <Property name="label" type="java.lang.String" value="Automat untersuchen"/>
+                <Property name="text" type="java.lang.String" value="Automat untersuchen"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItem29ActionPerformed"/>

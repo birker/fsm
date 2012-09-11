@@ -103,6 +103,7 @@ public class GraphPanel extends JComponent implements Observer {
             g2d.draw(element.getPath(false));
             if (graph.getChoice() == element) {
                 //draw Support Points
+                setSP();
                 g2d.setColor(Color.blue);
                 for (RectangularShape s: sp) {
                     g2d.fill(s);
@@ -343,6 +344,7 @@ public class GraphPanel extends JComponent implements Observer {
                 moveElement = hitSupportPoint();
                 if (moveElement != null) {
                     element.getSupportPoints().remove((Point)moveElement);
+                    element.setAutoSP(false);
                     element.rebuildPath();
                 } else {
                     //search Label and change rotation if found
@@ -359,7 +361,7 @@ public class GraphPanel extends JComponent implements Observer {
             }
             
         }
-        setSP();
+        //();
         graph.notifyObs();
     }//GEN-LAST:event_formMouseClicked
 
@@ -370,12 +372,16 @@ public class GraphPanel extends JComponent implements Observer {
                 graph.setChoice(mouseElement);
                 Vertex element = (Vertex) mouseElement;
                 if (moveElement == null && element.isLabelOutside()) {
-                    if (element.getLabel().contains(evt.getPoint())) moveElement = element.getLabel();
+                    System.out.println("checklabel");
+                    if (element.getLabel().getBounds().contains(evt.getPoint())) moveElement = element.getLabel();
+                    
+                System.out.println(moveElement);
                 }
                 if (moveElement instanceof JLabel) {
                     element.getLabel().setBounds((int) (element.getLabel().getX() + evt.getX() - mouseStart.getX()), (int)(element.getLabel().getY() + evt.getY() - mouseStart.getY()), element.getLabel().getWidth(), element.getLabel().getHeight());
                 }
                 if (moveElement == null) {
+                    System.out.println("use shape");
                     moveElement = element.getShape();
                 }
                 if (moveElement instanceof Shape) {
@@ -427,13 +433,14 @@ public class GraphPanel extends JComponent implements Observer {
                         nrsmallest = nr;
                     }
                     element.getSupportPoints().add(nrsmallest, evt.getPoint());
+                    element.setAutoSP(false);
                     moveElement = element.getSupportPoints().get(nrsmallest);
                 }
                 mouseStart = evt.getPoint();
             
             }
             graph.notifyObs();
-            setSP();
+            //setSP();
         } else if (evt.getModifiers() == MouseEvent.BUTTON3_MASK) {
             if (mouseElement == null) {
                 graph.setChoice(mouseElement);
@@ -455,7 +462,7 @@ public class GraphPanel extends JComponent implements Observer {
             } else if (mouseElement instanceof Vertex) {
                 //create new floating edge
                 if (moveElement == null) {
-                    Vertex tmp = new Vertex(graph, new Rectangle2D.Double(0,0,10,10), evt.getPoint(), "");
+                    Vertex tmp = new Vertex(graph, evt.getPoint(), "");
                     Edge e = graph.addEdge((Vertex)mouseElement, tmp);
                     moveElement = e;
                 } else {
@@ -490,7 +497,7 @@ public class GraphPanel extends JComponent implements Observer {
         }
         for (Vertex n: graph.getVertices()) {
             if (n.getShape().contains(evt.getPoint()) ||
-                    (n.isLabelOutside() && n.getLabel().contains(evt.getPoint()))) {
+                    (n.isLabelOutside() && n.getLabel().getBounds().contains(evt.getPoint()))) {
                 mouseElement = n;
                 return;
             }

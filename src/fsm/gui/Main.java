@@ -10,12 +10,14 @@
  */
 package fsm.gui;
 
+import fsm.DistanceAutomata;
 import fsm.Edge;
 import fsm.EdgeFsm;
 import fsm.Fsm;
 import fsm.Graph;
 import fsm.Vertex;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.ByteArrayInputStream;
@@ -127,10 +129,12 @@ public class Main extends javax.swing.JFrame {
     /** Creates new form Main */
     public Main() {
         initComponents();
-        jTabbedPane1.add("Automat 0",new GraphTab(new Fsm()));
+        //jTabbedPane1.add("Automat 0",new GraphTab(new Fsm()));
+        jMenuItem8ActionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, ""));
         try {
             for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                 mLooknFeel.add(new JMenuItem(info.getName()) {
+                    private static final long serialVersionUID = 1L;
 
                     {
                         addActionListener(new java.awt.event.ActionListener() {
@@ -160,7 +164,9 @@ public class Main extends javax.swing.JFrame {
         
         Preferences pref = Preferences.userRoot().node("Fsm");
         try {
-            lastFiles = (ArrayList<File>) bytes2Object(pref.getByteArray("lastFiles", object2Bytes(new ArrayList<File>(11))));
+            @SuppressWarnings("unchecked")
+            ArrayList<File> tmp = (ArrayList<File>) bytes2Object(pref.getByteArray("lastFiles", object2Bytes(new ArrayList<File>(11))));
+            lastFiles = tmp;
         } catch (Exception ex) {
             lastFiles = new ArrayList<File>(11);
         }
@@ -438,7 +444,7 @@ public class Main extends javax.swing.JFrame {
         });
         jMenu4.add(jMenuItem9);
 
-        jMenuItem7.setLabel("Graph am Raster ausrichten");
+        jMenuItem7.setText("Graph am Raster ausrichten");
         jMenuItem7.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem7ActionPerformed(evt);
@@ -456,7 +462,8 @@ public class Main extends javax.swing.JFrame {
         jMenu4.add(jMenuItem32);
 
         jCheckBoxMenuItem5.setSelected(true);
-        jCheckBoxMenuItem5.setLabel("automatische Hilfspunkte");
+        jCheckBoxMenuItem5.setText("automatische Hilfspunkte");
+        jCheckBoxMenuItem5.setEnabled(false);
         jCheckBoxMenuItem5.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jCheckBoxMenuItem5ActionPerformed(evt);
@@ -474,11 +481,11 @@ public class Main extends javax.swing.JFrame {
 
         jMenuBar1.add(jMenu4);
 
-        jMenu6.setLabel("Automat");
+        jMenu6.setText("Automat");
 
-        jMenu7.setLabel("Elimination spontaner Übergänge");
+        jMenu7.setText("Elimination spontaner Übergänge");
 
-        jMenuItem21.setLabel("von links (default)");
+        jMenuItem21.setText("von links (default)");
         jMenuItem21.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem21ActionPerformed(evt);
@@ -486,7 +493,7 @@ public class Main extends javax.swing.JFrame {
         });
         jMenu7.add(jMenuItem21);
 
-        jMenuItem22.setLabel("von rechts");
+        jMenuItem22.setText("von rechts");
         jMenuItem22.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem22ActionPerformed(evt);
@@ -494,7 +501,7 @@ public class Main extends javax.swing.JFrame {
         });
         jMenu7.add(jMenuItem22);
 
-        jMenuItem23.setLabel("beidseitig");
+        jMenuItem23.setText("beidseitig");
         jMenuItem23.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem23ActionPerformed(evt);
@@ -504,9 +511,7 @@ public class Main extends javax.swing.JFrame {
 
         jMenu6.add(jMenu7);
 
-        jMenu8.setLabel("Minimierung");
-
-        jMenuItem25.setLabel("Entfernen unerreichbarer Zustände");
+        jMenuItem25.setText("Entfernen unerreichbarer Zustände");
         jMenuItem25.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem25ActionPerformed(evt);
@@ -514,7 +519,7 @@ public class Main extends javax.swing.JFrame {
         });
         jMenu8.add(jMenuItem25);
 
-        jMenuItem28.setLabel("Unnötige Kanten entfernen");
+        jMenuItem28.setText("Unnötige Kanten entfernen");
         jMenuItem28.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem28ActionPerformed(evt);
@@ -522,7 +527,7 @@ public class Main extends javax.swing.JFrame {
         });
         jMenu8.add(jMenuItem28);
 
-        jMenuItem26.setLabel("Entfernen von unproduktiven Zuständen");
+        jMenuItem26.setText("Entfernen von unproduktiven Zuständen");
         jMenuItem26.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem26ActionPerformed(evt);
@@ -530,8 +535,8 @@ public class Main extends javax.swing.JFrame {
         });
         jMenu8.add(jMenuItem26);
 
+        jMenuItem27.setText("Minimieren (für DEAs)");
         jMenuItem27.setEnabled(false);
-        jMenuItem27.setLabel("Minimieren (für DEAs)");
         jMenuItem27.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem27ActionPerformed(evt);
@@ -541,7 +546,7 @@ public class Main extends javax.swing.JFrame {
 
         jMenu6.add(jMenu8);
 
-        jMenuItem24.setLabel("Potenzmengenkonstruktion (NEA->DEA)");
+        jMenuItem24.setText("Potenzmengenkonstruktion (NEA->DEA)");
         jMenuItem24.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem24ActionPerformed(evt);
@@ -565,11 +570,11 @@ public class Main extends javax.swing.JFrame {
         });
         jMenu6.add(jMenuItem31);
 
+        jMenuItem43.setText("Sprache identifizieren (Kleene, regEx)");
         jMenuItem43.setEnabled(false);
-        jMenuItem43.setLabel("Sprache identifizieren (Kleene, regEx)");
         jMenu6.add(jMenuItem43);
 
-        jMenuItem29.setLabel("Automat untersuchen");
+        jMenuItem29.setText("Automat untersuchen");
         jMenuItem29.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem29ActionPerformed(evt);
@@ -874,7 +879,7 @@ public class Main extends javax.swing.JFrame {
             return;
         }
         if (k<0) return;
-        Fsm fsm = Fsm.distanceAutomaton(k, s, Fsm.DistanceType.getByNumber(evt.getSource()==jMenuItem12?0:1));
+        Fsm fsm = DistanceAutomata.distanceAutomaton(k, s, DistanceAutomata.DistanceType.getByNumber(evt.getSource()==jMenuItem12?0:1));
         fsm.setName(((JMenuItem)evt.getSource()).getText()+" "+s+" ("+k+")");
         jTabbedPane1.add(fsm.getName(),new GraphTab(fsm));
         fsm.notifyObs();
@@ -888,7 +893,7 @@ public class Main extends javax.swing.JFrame {
             return;
         }
         if (k<0) return;
-        Fsm fsm = Fsm.uniHamming(k);
+        Fsm fsm = DistanceAutomata.uniHamming(k);
         fsm.setName("univ. "+(jCheckBoxMenuItem3.isSelected()?"det. ":"")+((JMenuItem)evt.getSource()).getText()+" ("+k+")");
         jTabbedPane1.add(fsm.getName(),new GraphTab(fsm));
         fsm.notifyObs();
@@ -902,7 +907,7 @@ public class Main extends javax.swing.JFrame {
             return;
         }
         if (k<0) return;
-        Fsm fsm = Fsm.uniNLevenshtein(k);
+        Fsm fsm = DistanceAutomata.uniNLevenshtein(k);
         fsm.setName("univ. "+(jCheckBoxMenuItem3.isSelected()?"det. ":"")+((JMenuItem)evt.getSource()).getText()+" ("+k+")");
         jTabbedPane1.add(fsm.getName(),new GraphTab(fsm));
         fsm.notifyObs();
@@ -973,7 +978,7 @@ public class Main extends javax.swing.JFrame {
         boolean complete = ((Fsm) getSelectedGraph()).isComplete();
         boolean spontanious = ((Fsm) getSelectedGraph()).isSpontanious();
         //int blocksize = 0;
-        String alpha = ((Fsm) getSelectedGraph()).calcAlphabethString(true);
+        String alpha = ((Fsm) getSelectedGraph()).calcAlphabeth(true);
         JOptionPane.showMessageDialog(this, "<html>Der Automat A = \u3008Q, X, &delta;, I, F\u3009 ist ein "+(complete?"v":"")+(dea?"DEA":"NEA")
                 +(spontanious?" mit spontanten Übergängen.":" ohne spontane Übergänge.")
                 +"<br>Zustände Q: {"+Fsm.getPowersetName(new HashSet<Vertex>(((Fsm) getSelectedGraph()).getVertices()))+"}"
@@ -985,7 +990,7 @@ public class Main extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem29ActionPerformed
 
     private void jCheckBoxMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItem5ActionPerformed
-        Edge.setAutoSP(jCheckBoxMenuItem5.isSelected());
+        //Edge.setAutoSP(jCheckBoxMenuItem5.isSelected());
     }//GEN-LAST:event_jCheckBoxMenuItem5ActionPerformed
 
     private void jMenuItem32ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem32ActionPerformed

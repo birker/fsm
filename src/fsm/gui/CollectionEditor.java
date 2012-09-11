@@ -20,6 +20,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -32,11 +33,11 @@ import javax.swing.text.DocumentFilter;
 public class CollectionEditor extends javax.swing.JPanel {
     private static final long serialVersionUID = 1L;
 
-    class ListRenderer extends JLabel implements ListCellRenderer {
+    class ListRenderer extends JLabel implements ListCellRenderer<Object> {
         private static final long serialVersionUID = 1L;
 
         @Override
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+        public Component getListCellRendererComponent(JList<? extends Object> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             setOpaque(true);
             if (isSelected) {
                 setBackground(list.getSelectionBackground());
@@ -45,28 +46,19 @@ public class CollectionEditor extends javax.swing.JPanel {
                 setBackground(list.getBackground());
                 setForeground(list.getForeground());
             }
-            //setText("");
-            //if (c instanceof ArrayList) {
-                if (value instanceof Point) {
-                    //supportpoints
-                    setText(((Point)value).x+", "+((Point)value).y);// (((ArrayList)c).get(index));
-                } else if (value instanceof Vertex) {
-                    //QxS-Entry
-                    setText(Vertex.parseString(((Vertex)value).getName()));
-                } else if (value instanceof Map.Entry) {
-                    //shortsymbols
-                    setText(((Map.Entry)value).getKey().toString()+" \u21D2 "+((Map.Entry)value).getValue().toString());
-                } else {
-                    //transitions, other
-                    setText(value.toString());
-                }
-            //} else if (c instanceof HashSet) {
-                //transitions
-            //    setText(value.toString());//return ((HashSet)c).toArray()[index];
-            //} else if (c instanceof HashMap) {
+            if (value instanceof Point) {
+                //supportpoints
+                setText(((Point)value).x+", "+((Point)value).y);// (((ArrayList)c).get(index));
+            } else if (value instanceof Vertex) {
+                //QxS-Entry
+                setText(Vertex.parseString(((Vertex)value).getName()));
+            } else if (value instanceof Map.Entry) {
                 //shortsymbols
-                //return ((HashMap)c).entrySet().toArray()[index];
-            //}
+                setText(((Map.Entry)value).getKey().toString()+" \u21D2 "+((Map.Entry)value).getValue().toString());
+            } else {
+                //transitions, other
+                setText(value.toString());
+            }
             return this;
         }
         
@@ -112,11 +104,8 @@ public class CollectionEditor extends javax.swing.JPanel {
         if (c instanceof ArrayList) {
             jButton2.setVisible(true);
             jButton3.setVisible(true);
-            //ParameterizedType pt = (ParameterizedType)c.getClass().getGenericSuperclass();
-            //System.out.println(pt);
-            //type = (Class<?>)pt.getActualTypeArguments()[0];
             if (type == Point.class) {
-                editor = jPanel1;
+                editor = pointPanel;
             } else if (type == Vertex.class) {
                 editor = jComboBox1;
             }
@@ -124,12 +113,13 @@ public class CollectionEditor extends javax.swing.JPanel {
             jButton2.setVisible(false);
             jButton3.setVisible(false);
             if (c instanceof HashMap) {
-                editor = jPanel2;
+                editor = CharStringMapPanel;
             }
         }
         jPanel3.removeAll();
         jPanel3.add(editor, BorderLayout.CENTER);
         
+        jList1ValueChanged(new ListSelectionEvent(c, 0, 0, false));
         jList1.getModel().getElementAt(0);
         jList1.revalidate();
         jList1.repaint();
@@ -166,18 +156,18 @@ public class CollectionEditor extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPanel1 = new javax.swing.JPanel();
+        pointPanel = new javax.swing.JPanel();
         jSpinner1 = new javax.swing.JSpinner();
         jLabel1 = new javax.swing.JLabel();
         jSpinner2 = new javax.swing.JSpinner();
         jTextField1 = new javax.swing.JTextField();
-        jPanel2 = new javax.swing.JPanel();
+        CharStringMapPanel = new javax.swing.JPanel();
         jTextField2 = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         jTextField3 = new javax.swing.JTextField();
-        jComboBox1 = new javax.swing.JComboBox();
+        jComboBox1 = new javax.swing.JComboBox<Vertex>();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList();
+        jList1 = new javax.swing.JList<Object>();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
@@ -185,24 +175,24 @@ public class CollectionEditor extends javax.swing.JPanel {
         jButton5 = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
 
-        jPanel1.setLayout(new javax.swing.BoxLayout(jPanel1, javax.swing.BoxLayout.LINE_AXIS));
+        pointPanel.setLayout(new javax.swing.BoxLayout(pointPanel, javax.swing.BoxLayout.LINE_AXIS));
 
         jSpinner1.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
-        jPanel1.add(jSpinner1);
+        pointPanel.add(jSpinner1);
 
         jLabel1.setText(", ");
-        jPanel1.add(jLabel1);
+        pointPanel.add(jLabel1);
 
         jSpinner2.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
-        jPanel1.add(jSpinner2);
+        pointPanel.add(jSpinner2);
 
         jLabel2.setText(" \u21D2 ");
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        javax.swing.GroupLayout CharStringMapPanelLayout = new javax.swing.GroupLayout(CharStringMapPanel);
+        CharStringMapPanel.setLayout(CharStringMapPanelLayout);
+        CharStringMapPanelLayout.setHorizontalGroup(
+            CharStringMapPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(CharStringMapPanelLayout.createSequentialGroup()
                 .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel2)
@@ -210,11 +200,11 @@ public class CollectionEditor extends javax.swing.JPanel {
                 .addComponent(jTextField3, javax.swing.GroupLayout.DEFAULT_SIZE, 35, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+        CharStringMapPanelLayout.setVerticalGroup(
+            CharStringMapPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, CharStringMapPanelLayout.createSequentialGroup()
                 .addGap(0, 0, Short.MAX_VALUE)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(CharStringMapPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2)
                     .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -325,6 +315,7 @@ public class CollectionEditor extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    @SuppressWarnings("unchecked")
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         //add
         if (c instanceof HashSet) {
@@ -347,6 +338,7 @@ public class CollectionEditor extends javax.swing.JPanel {
         jList1.getModel().getElementAt(0);
     }//GEN-LAST:event_jButton4ActionPerformed
 
+    @SuppressWarnings("unchecked")
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
         //change
         if (c instanceof HashSet) {
@@ -386,6 +378,7 @@ public class CollectionEditor extends javax.swing.JPanel {
         //jList1.repaint();
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    @SuppressWarnings("unchecked")
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         //move up
         if (c instanceof ArrayList) {
@@ -398,6 +391,7 @@ public class CollectionEditor extends javax.swing.JPanel {
         jList1.getModel().getElementAt(0);
     }//GEN-LAST:event_jButton2ActionPerformed
 
+    @SuppressWarnings("unchecked")
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         if (c instanceof ArrayList) {
             Object tmp = jList1.getSelectedValue();
@@ -409,21 +403,45 @@ public class CollectionEditor extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jList1ValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jList1ValueChanged
-        jTextField1.setText(jList1.getSelectedValue().toString());
+        
+        if (editor == jTextField1) {
+            if (jList1.getSelectedValue() == null) jTextField1.setText("");
+            else jTextField1.setText(jList1.getSelectedValue().toString());
+        } else if (editor == jComboBox1) {
+            if (jList1.getSelectedValue() == null) {
+                jComboBox1.setSelectedIndex(jComboBox1.getItemCount()>0?0:-1);
+            }
+            else jComboBox1.setSelectedItem(jList1.getSelectedValue());
+        } else if (editor == pointPanel) {
+            if (jList1.getSelectedValue() == null) {
+                jSpinner1.setValue(0);
+                jSpinner1.setValue(0);
+            } else {
+                jSpinner1.setValue(((Point)jList1.getSelectedValue()).x);
+                jSpinner1.setValue(((Point)jList1.getSelectedValue()).y);
+            }
+        } else if (editor == CharStringMapPanel) {
+            if (jList1.getSelectedValue() == null) {
+                jTextField2.setText("");
+                jTextField3.setText("");  
+            } else {
+                jTextField2.setText(((Map.Entry)jList1.getSelectedValue()).getKey().toString());
+                jTextField3.setText(((Map.Entry)jList1.getSelectedValue()).getValue().toString());  
+            } 
+        }
     }//GEN-LAST:event_jList1ValueChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel CharStringMapPanel;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
-    private javax.swing.JComboBox jComboBox1;
+    private javax.swing.JComboBox<Vertex> jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JList jList1;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
+    private javax.swing.JList<Object> jList1;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSpinner jSpinner1;
@@ -431,5 +449,6 @@ public class CollectionEditor extends javax.swing.JPanel {
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
+    private javax.swing.JPanel pointPanel;
     // End of variables declaration//GEN-END:variables
 }
