@@ -228,8 +228,6 @@ public class EasyDetFSMForm extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jTable1Changed(TableModelEvent e) {
-        System.out.println(e);
-        System.out.println("Spalte "+e.getColumn()+" Zeile "+e.getFirstRow()+" Wert "+jTable1.getValueAt(e.getFirstRow(), e.getColumn()));
         if (e.getColumn() <= fsm.getLetterCount()) {
             fsm.setTranistion(e.getFirstRow()-1, e.getColumn()-1, (Integer) jTable1.getValueAt(e.getFirstRow(), e.getColumn()));
         } else {

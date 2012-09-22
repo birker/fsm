@@ -1,0 +1,56 @@
+%%% Die Klasse unitext besitzt die Optio
+%%% bachelorarbeit, projektarbeit, masterarbeit, studienarbeit, diplomarbeit,
+%%% bericht und script für die verschiedenen Dokumenttypen sowie die Optionen
+%%% inf, ips, idb, sse, iti, ida und eis für die entsprechenden Institute. Bei
+%%% Bedarf können weitere aufgenommen werden. Aus jeder der beiden Gruppen ist
+%%% genau eine Option zu wählen. Außerdem können der Stil des Literaturverzeich-
+%%% nisses (alpha, abbrv, unsrt, plain) und die Sprache (german, english) als
+%%% weitere Optionen angegeben werden. Die Angabe einer Sprache ist obligato-
+%%% risch. Eine der Optionen dvi, ps oder pdf ist abhängig vom gewählten Ausgabe-
+%%% format anzugeben. Dokumentspezifische Einstellungen werden in unitext.cfg
+%%% vorgenommen. Der Text ist doppelseitig auszudrucken.
+%%% Weitere Optionen: Beispiele für Titelseite: titelseite, cd
+
+  \documentclass[iti,german,bachelorarbeit,pdf]{unitext}            
+
+%%% title, author und date müssen angegeben werden,
+%%% dozent, betreuer und keywords sind optional.
+\title{Konstruktion und Simulation von endlichen Automaten in Java mit besonderer Berücksichtigung universeller Abstandsautomaten}
+\author{Konstantin Birker}
+\date{04. Oktober 2012}
+%\dozent{Dr. Wilhelm Meister}
+\betreuer{%
+  Dr. Jürgen Koslowski
+}
+%\keywords{Unitext, Musterdokument.}
+
+\makeglossary           %%% optional
+\makeindex              %%% optional
+
+\begin{document}
+
+%%% Titelei
+\titelblatt             %%% obligatorisch
+\erklaerung             %%% obligatorisch für Abschlussarbeiten
+\zusammenfassung        %%% obligatorisch, in der Datei zusammenfassung.tex
+%\vorwort                %%% optional, in der Datei vorwort.tex
+\tableofcontents        %%% obligatorisch
+\listoftables           %%% optional
+\listoffigures          %%% optional
+\abkuerzung             %%% optional, in der Datei abkuerzung.tex
+
+%%% Der Textteil steht sinnvollerweise in mehreren Dateien.
+\starttext              %%% obligatorisch
+%\input{1-zielsetzung}
+\input{2-features}
+\input{3-implementierung}
+\input{4-abstandsautomaten}
+\input{5-futurework}
+
+%%% Anhang
+\bibliography{lit,prog} %%% obligatorisch
+\printglossary          %%% optional, Eintrag durch \glossar{begriff}{erklärung}
+\printindex             %%% optional
+%\anhang                 %%% optional, in der Datei anhang.tex
+
+\end{document}

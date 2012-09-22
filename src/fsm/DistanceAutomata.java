@@ -130,7 +130,7 @@ public class DistanceAutomata {
     public static Fsm uniNLevenshtein(int distance) {
         Fsm fsm = new Fsm();
         fsm.getShortSymbols().put('_', "01");
-        fsm.setBlocksize(distance*2+1);
+        //fsm.setBlocksize(distance*2+1);
         for (int i=0; i <= distance; i++) {
             for (int j = -i; j<=i; j++) {
                 Vertex n = fsm.addVertex(new Point(30+i*3*(int)fsm.getDefVertexShape().getWidth(),10+(distance+j)*2*(int)fsm.getDefVertexShape().getHeight()));

@@ -374,8 +374,6 @@ public class GraphPanel extends JComponent implements Observer {
                 if (moveElement == null && element.isLabelOutside()) {
                     System.out.println("checklabel");
                     if (element.getLabel().getBounds().contains(evt.getPoint())) moveElement = element.getLabel();
-                    
-                System.out.println(moveElement);
                 }
                 if (moveElement instanceof JLabel) {
                     element.getLabel().setBounds((int) (element.getLabel().getX() + evt.getX() - mouseStart.getX()), (int)(element.getLabel().getY() + evt.getY() - mouseStart.getY()), element.getLabel().getWidth(), element.getLabel().getHeight());

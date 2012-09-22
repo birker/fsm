@@ -31,14 +31,15 @@
 \DeclareOption{titelseite}{\AtBeginDocument{\renewcommand{\titelblatt}{\input{titelseite}}}}
 \DeclareOption{cd}{\AtBeginDocument{\renewcommand{\titelblatt}{\input{cd}}}}
 
-\DeclareOption{inf}{\renewcommand{\@institut}{Institute f¸r Informatik}}
-\DeclareOption{ips}{\renewcommand{\@institut}{Institut f¸r Programmierung und Reaktive Systeme}}
-\DeclareOption{idb}{\renewcommand{\@institut}{Institut f¸r Informationssysteme}}
-\DeclareOption{ida}{\renewcommand{\@institut}{Institut f¸r Datentechnik und Kommunikationsnetze}}
-\DeclareOption{iti}{\renewcommand{\@institut}{Institut f¸r Theoretische Informatik}}
-\DeclareOption{eis}{\renewcommand{\@institut}{Institut f¸r Theoretische Informatik\\%
+\DeclareOption{inf}{\renewcommand{\@institut}{Institute f√ºr Informatik}}
+\DeclareOption{ips}{\renewcommand{\@institut}{Institut f√ºr Programmierung und Reaktive Systeme}}
+\DeclareOption{idb}{\renewcommand{\@institut}{Institut f√ºr Informationssysteme}}
+\DeclareOption{ida}{\renewcommand{\@institut}{Institut f√ºr Datentechnik und Kommunikationsnetze}}
+%EDIT sonst hat er das √º nicht richtig gemacht
+\DeclareOption{iti}{\renewcommand{\@institut}{Institut f\"ur Theoretische Informatik}}
+\DeclareOption{eis}{\renewcommand{\@institut}{Institut f√ºr Theoretische Informatik\\%
   Abteilung Entwurf Integrierter Schaltungen}}
-\DeclareOption{sse}{\renewcommand{\@institut}{Institut f¸r Software Systems Engineering}}
+\DeclareOption{sse}{\renewcommand{\@institut}{Institut f√ºr Software Systems Engineering}}
 
 \DeclareOption{abbrv}{\renewcommand{\@bib}{abbrv}}
 \DeclareOption{alpha}{\renewcommand{\@bib}{alpha}}
@@ -70,7 +71,7 @@
 
 \DeclareOption{pdf}{%
   \AtEndOfClass{%
-   \RequirePackage[pdftex]{color}
+   \RequirePackage[pdftex]{xcolor}
    \RequirePackage[pdftex]{graphicx}
    \RequirePackage[pdftex,pagebackref,plainpages=false,pdfpagelabels,bookmarksnumbered,
      colorlinks,urlcolor=black,linkcolor=black,citecolor=black]{hyperref}
@@ -80,7 +81,7 @@
 
 \DeclareOption{ps}{%
   \AtEndOfClass{%
-   \RequirePackage[dvips]{color}
+   \RequirePackage[dvips]{xcolor}
    \RequirePackage[dvips]{graphicx}
    \RequirePackage[dvips,pagebackref,plainpages=false,pdfpagelabels,bookmarksnumbered,
      colorlinks,urlcolor=black,linkcolor=black,citecolor=black]{hyperref}
@@ -89,7 +90,7 @@
 
 \DeclareOption{dvi}{%
   \AtEndOfClass{%
-   \RequirePackage[xdvi]{color}
+   \RequirePackage[xdvi]{xcolor}
    \RequirePackage[xdvi]{graphicx}
    \RequirePackage[hypertex,pagebackref,plainpages=false,pdfpagelabels,bookmarksnumbered,
      colorlinks,urlcolor=black,linkcolor=black,citecolor=black]{hyperref}
@@ -98,15 +99,16 @@
 
 \ExecuteOptions{inf,plain}
 \ProcessOptions\relax
-
-\LoadClass[a4paper,12pt,twoside,DIV12,BCOR08mm]{scrreprt}
+%EDIT abstatzabstand
+\LoadClass[a4paper,12pt,twoside,DIV12,BCOR08mm,halfparskip]{scrreprt}
 \KOMAoptions{abstract=on,cleardoublepage=empty,numbers=noenddot,
   headsepline=false,headings=normal,listof=totoc,index=totoc,bibliography=totoc}
 % \setkomafont{pagehead}{\sffamily\bfseries}
 
-\RequirePackage[latin1]{inputenc}
+%EDIT latin1-->utf8
+\RequirePackage[utf8]{inputenc}
 
-\RequirePackage[T1]{fontenc}
+%\RequirePackage[T1]{fontenc}
 \RequirePackage{textcomp}
 \RequirePackage{lmodern}
 \RequirePackage{amssymb}
@@ -155,7 +157,7 @@
   {\sffamily\normalsize\vskip15mm\@institut\par\@dozent\par\vskip08mm\@betreuer}
 }
 
-\newcommand{\erklaerungname}{Eidesstattliche Erkl‰rung}
+\newcommand{\erklaerungname}{Eidesstattliche Erkl√§rung}
 \newcommand{\erklaerung}{%
   \cleardoublepage
   \pdfbookmark[0]{\erklaerungname}{erklaerungname}
@@ -165,8 +167,8 @@
   \begin{center}\sffamily\bfseries\large
     \erklaerungname
   \end{center}
-  \bigskip\noindent Hiermit erkl‰re ich an Eides statt, dass
-  ich die vorliegende Arbeit selbstst‰ndig verfasst und keine
+  \bigskip\noindent Hiermit erkl√§re ich an Eides statt, dass
+  ich die vorliegende Arbeit selbstst√§ndig verfasst und keine
   anderen als die angegebenen Hilfsmittel verwendet habe.\par
   \bigskip\noindent Braunschweig,~\datum\par
   \vskip 10mm
@@ -184,7 +186,7 @@
 }
 
 \renewcommand{\abstractname}{{\normalsize Zusammenfassung}}
-\newcommand{\keywordsname}{Stichwˆrter}
+\newcommand{\keywordsname}{Stichw√∂rter}
 \newcommand{\zusammenfassung}
   {\begin{abstract}
      \markboth{\abstractname}{\abstractname}
@@ -209,7 +211,7 @@
 
 \renewcommand{\listtablename}{Verzeichnis der Tabellen}
 
-\newcommand{\abkuerzungname}{Verzeichnis der Abk¸rzungen}
+\newcommand{\abkuerzungname}{Verzeichnis der Abk√ºrzungen}
 
 \newcommand{\abkuerzung}{%
   \newpage

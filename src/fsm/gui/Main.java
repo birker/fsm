@@ -511,6 +511,8 @@ public class Main extends javax.swing.JFrame {
 
         jMenu6.add(jMenu7);
 
+        jMenu8.setText("Minimierung");
+
         jMenuItem25.setText("Entfernen unerreichbarer Zustände");
         jMenuItem25.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {

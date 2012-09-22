@@ -16,7 +16,9 @@
   </target>
 
   <target name="compile" depends="init" description="compile the source " >
-    <javac srcdir="${src}" destdir="${build}" encoding="UTF-8" includeantruntime="false" debug="true"/>
+    <javac srcdir="${src}" destdir="${build}" encoding="UTF-8" includeantruntime="false" debug="true">
+        <compilerarg value="-Xlint"/>
+    </javac>
   </target>
 
   <target name="dist" depends="compile" description="generate the distribution" >

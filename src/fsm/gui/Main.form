@@ -303,6 +303,9 @@
               </SubComponents>
             </Menu>
             <Menu class="javax.swing.JMenu" name="jMenu8">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Minimierung"/>
+              </Properties>
               <SubComponents>
                 <MenuItem class="javax.swing.JMenuItem" name="jMenuItem25">
                   <Properties>

@@ -35,7 +35,8 @@ public class Fsm extends Graph {
     private HashMap<Character, String> shortSymbols = new HashMap<Character,String>(); //a list of short cuts (e.g. x (char) stands for 0 or 1 (String: 01)); should work in Blocks, too.
     
     //for universial levenshtein automatas, we have to be able to read input in blocks. 0 should be automatic
-    private int blocksize = 0;
+    //there seems to be no need to specify it.
+    //private int blocksize = 0;
     
     //Simulation etc.
     private ArrayList<Element> activeEps = new ArrayList<Element>();
@@ -78,14 +79,6 @@ public class Fsm extends Graph {
 
     public void setAnySymbol(char anySymbol) {
         this.anySymbol = anySymbol;
-    }
-
-    public int getBlocksize() {
-        return blocksize;
-    }
-
-    public void setBlocksize(int blocksize) {
-        this.blocksize = blocksize;
     }
     
     public char getEpsSymbol() {
@@ -324,7 +317,6 @@ public class Fsm extends Graph {
      *             2: absorb spontanious transitions from both sides
      */
     public void epsElimination(EpsEliminationType type) {
-        //TODO warum findet er von q_0 nach q_1 zwei einsen??
         ArrayList<Edge> newEdges = new ArrayList<Edge>();
         for (Vertex n: getVertices()) {
             activeEps.clear();
@@ -463,7 +455,8 @@ public class Fsm extends Graph {
         for (Vertex n: s) {
             result += n.getName() + ", ";
         }
-        return result.substring(0, result.length()-2);
+        if (result.length()>2) return result.substring(0, result.length()-2);
+        else return result;
     }
     
     /**
@@ -687,8 +680,7 @@ public class Fsm extends Graph {
      
     public Fsm powersetAutomaton() {
         for (Vertex v: getVertices()) {
-            v.calcReachable();     
-            System.out.println(v.reachable);
+            v.calcReachable();
         }
         Fsm p = new Fsm();
         HashMap<HashSet<Vertex>,Vertex> metastatemap = new HashMap<HashSet<Vertex>, Vertex>();
@@ -718,7 +710,6 @@ public class Fsm extends Graph {
                         else {
                             ArrayList<String> intersection = getIntersectionTrans(s, t);
                             if (intersection != null && !intersection.isEmpty()) {
-                                System.out.println("intersection");
                                 HashSet<Vertex> tmp = trans.get(s);
                                 trans.remove(s);
                                 //rest 1
@@ -761,6 +752,7 @@ public class Fsm extends Graph {
             for (Vertex v: oldVertices) {
                 boolean els = v.reachable.containsKey(""+getElseSymbol());
                 boolean any = v.reachable.containsKey(""+getAnySymbol());
+                if (any && els) System.out.println("Das darf nicht sein.");
                 if (els || any) {
                     for (String t: trans.keySet()) {
                         //anyübergänge an jeden knoten geben
@@ -876,7 +868,7 @@ public class Fsm extends Graph {
             result += c;
             if (delimiter) result += ", ";
         }
-        if (delimiter) result = result.substring(0, result.length()-2);
+        if (delimiter && result.length()>2) result = result.substring(0, result.length()-2);
         return result;
     }
     

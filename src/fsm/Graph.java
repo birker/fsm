@@ -258,7 +258,6 @@ public class Graph extends Observable implements Serializable {
     private Point2D calcFattr(Vertex n1, Vertex n2) {
         Point2D p = new Point2D.Double(n2.getShape().getFrame().getCenterX() - n1.getShape().getFrame().getCenterX(),
                 n2.getShape().getFrame().getCenterY() - n1.getShape().getFrame().getCenterY());
-        System.out.println(p);
         double c = p.distanceSq(new Point2D.Double(0, 0)) / deflength;
         System.out.println(" "+c);
         p.setLocation(-c*p.getX(),-c*p.getY());
