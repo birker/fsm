@@ -1,12 +1,15 @@
 \chapter{Future Work}\label{FutureWork}
 Das Projekt bietet viele Erweiterungsmöglichkeiten. Einige seien hier vorgestellt.
 
+Einige Features sind wegen Zeitmangel nicht vollständig implementiert oder nicht ausreichend getestet. Auch von kleineren Features für den Bedienkomfort, z.B. Defaultwerte rückwirkend zu setzen, Übergangslabel direkt als Blöcke eingeben, komfortables Drehen von Schleifen, sind nicht alle implementiert.
+
 Zunächst wäre es sehr nützlich, (mindestens) einen funktionierenden Algorithmus zum Graphzeichnen zu haben. Gerade die bei der Potenzmengenkonstruktion entstehenden Automaten haben meist ein sehr schlechtes Layout.
 
-Als Erweiterung für den Bedienkomfort wären Aspekte wie Zoom, um z.B. schnell einen Überblick über große Graphen zu bekommen, Mehrfachauswahl, um gannze Teile des Graphen zu verändern oder verschieben und eine Rückgängig-Option. Interessant wäre eine Möglichkeit Graphen nach TeX zu exportieren, wahlweise als TikZ-Bild oder als pstricks-Bild. Eine sehr große Erweiterung wäre z.B. die Erweiterung von Graphen auf eine dritte Dimension. Damit ließen sich komplexe Graphen teilweise deutlich besser anordnen. Zusätzliche graphische Elemente dürfte sich zwar weitgehend durch Knoten simulieren lassen, aber eine bessere Unterstützung wäre durchaus vorstellbar. Insbesondere im Zusammenhang mit der Mehrfachauswahl wäre eine Methode zum Gruppieren von Elementen gut.
+Als Erweiterung für den Bedienkomfort wären Aspekte wie Zoom, um z.B. schnell einen Überblick über große Graphen zu bekommen, Mehrfachauswahl, um ganze Teile des Graphen zu verändern oder verschieben zu können und eine Rückgängig-Option nützlich. Interessant wäre eine Möglichkeit, Graphen nach TeX zu exportieren, wahlweise als TikZ-Bild oder als pstricks-Bild. Eine sehr große Erweiterung wäre z.B. die Erweiterung von Graphen auf eine dritte Dimension. Damit ließen sich komplexe Graphen teilweise deutlich besser anordnen. Zusätzliche graphische Elemente dürften sich zwar weitgehend durch Knoten simulieren lassen, aber eine bessere Unterstützung wäre durchaus vorstellbar. Insbesondere im Zusammenhang mit der Mehrfachauswahl wäre eine Methode zum Gruppieren von Elementen gut.
 
-So wie die Automaten lediglich eine Erweiterung der Graphen sind, könnte man die Automaten recht leicht erweitern um einen Stack, um auch Kellerautomaten zu betrachten und simulieren. Unterstützung für Turingmaschinen wäre vermutlich etwas aufwändiger, aber das Programm wäre eine geeignete Grundlage.
+So wie die Automaten lediglich eine Erweiterung der Graphen sind, könnte man die Automaten recht leicht erweitern um einen Stack, um auch Kellerautomaten zu betrachten und simulieren. Unterstützung für Turingmaschinen wäre vermutlich etwas aufwändiger, aber diese Arbeit wäre eine geeignete Grundlage.
 
 Weitere Algorithmen, die zu implementieren sind, wären der Kleene-Algorithmus zur Identifikation der Sprache durch reguläre Ausdrücke und die Minimierung von DEAs und evt. auch die aufwändigere Minimierung von NEAs. Aufwändig, aber interessant, wäre eine Simulation aller Algorithmen, was den Wert als didaktisches Begleitwerkzeug zur Theoretischen Informatik erheblich steigern würde.
 
 Weiterhin könnte man das Programm als Grundlage für graphentheoretische Probleme benutzen. Eine Vielzahl von Algorithmen ließen sich implementieren, wie z.B. Breiten- und Tiefensuche, Dijkstra, Kruskal, Bellmann-Moore-Ford usw. Auch eine Untersuchung des Graphen auf besondere Eigenschaften wie Baumstruktur, Zusammenhang oder Planarität wären denkbar.
+\endinput

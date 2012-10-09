@@ -130,6 +130,7 @@ public class DistanceAutomata {
     public static Fsm uniNLevenshtein(int distance) {
         Fsm fsm = new Fsm();
         fsm.getShortSymbols().put('_', "01");
+        fsm.setDefEdgeLabelRot(true);
         //fsm.setBlocksize(distance*2+1);
         for (int i=0; i <= distance; i++) {
             for (int j = -i; j<=i; j++) {
